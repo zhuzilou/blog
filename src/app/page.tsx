@@ -1,3 +1,11 @@
 export default function Home() {
-  return <h2>Hello World</h2>
+  return (
+    <>
+      {Array.from({ length: 100 }, (item, index) => (
+        <h2 key={index} className={`${(index === 0 || index === 99) && 'text-red-500'}`}>
+          Hello World
+        </h2>
+      ))}
+    </>
+  )
 }
