@@ -20,3 +20,10 @@ body {
   min-height: 100%;
   color: rgb(var(--foreground-rgb));
 }
+
+.icon {
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+  cursor: pointer;
+}
