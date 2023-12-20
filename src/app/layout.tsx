@@ -16,6 +16,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteHeader />
           <main className="flex-grow">{children}</main>
           {/* <SiteFooter /> */}
+
+          <script src="/iconfont.js" async></script>
         </div>
       </body>
     </html>
