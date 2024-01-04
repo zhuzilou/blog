@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import SiteHeader from '@/components/common/SiteHeader'
-import SiteFooter from '@/components/common/SiteFooter'
 
 export const metadata: Metadata = {
   title: 'Blog of djdg626',
@@ -12,10 +11,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body>
-        <div className="relative pt-12 flex flex-col min-h-screen">
+        <div className="relative pt-[5.5rem] flex flex-col min-h-screen text-slate-900 dark:text-slate-50 bg-white dark:bg-slate-950">
           <SiteHeader />
           <main className="flex-grow">{children}</main>
-          {/* <SiteFooter /> */}
 
           <script src="/iconfont.js" async></script>
         </div>
