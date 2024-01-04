@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="relative pt-[5.5rem] flex flex-col min-h-screen text-slate-900 dark:text-slate-50 bg-white dark:bg-slate-950">
           <SiteHeader />
-          <main className="flex-grow">{children}</main>
+          <main className="flex-grow px-4">{children}</main>
 
           <script src="/iconfont.js" async></script>
         </div>
