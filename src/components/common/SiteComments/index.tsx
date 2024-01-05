@@ -1,8 +1,11 @@
 'use client'
 
 import Giscus from '@giscus/react'
+import { useTheme } from 'next-themes'
 
 export default function SiteComments(props: { slug: string }) {
+  const { theme } = useTheme()
+
   return (
     <Giscus
       id={props.slug}
@@ -15,7 +18,7 @@ export default function SiteComments(props: { slug: string }) {
       reactionsEnabled="1"
       emitMetadata="1"
       inputPosition="top"
-      theme={'dark'}
+      theme={theme}
       lang="zh-CN"
       loading="lazy"
     />

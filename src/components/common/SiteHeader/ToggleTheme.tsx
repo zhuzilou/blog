@@ -1,51 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 
 import Icon from '@/components/common/SiteIcon'
 
 function ToggleTheme() {
-  const [theme, setTheme] = useState('dark')
+  const [mounted, setMounted] = useState(true)
+  const { theme, setTheme, resolvedTheme } = useTheme()
 
-  useEffect(() => {
-    if (
-      localStorage.theme === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ) {
-      setDark()
-    } else {
-      removeDark()
-    }
-  }, [])
+  // When mounted on client, now we can show the UI
+  useEffect(() => setMounted(true), [])
 
-  const toggleTheme = () => {
-    if (theme === 'dark') {
-      removeDark()
-    } else {
-      setDark()
-    }
-  }
-
-  const setDark = () => {
-    localStorage.setItem('theme', 'dark')
-    document.documentElement.classList.add('dark')
-    setTheme('dark')
-  }
-
-  const removeDark = () => {
-    localStorage.setItem('theme', 'light')
-    document.documentElement.classList.remove('dark')
-    setTheme('light')
+  if (!mounted) {
+    return null
   }
 
   return (
     <>
       <button
+        aria-label="Toggle Dark Mode"
         className="ml-auto sm:ml-1 p-1 rounded-md w-8 h-8 flex justify-center items-center"
-        onClick={() => toggleTheme()}
+        onClick={() => setTheme(theme === 'dark' || resolvedTheme === 'dark' ? 'light' : 'dark')}
       >
         <span className="sr-only">Toggle mode</span>
-        {theme !== 'dark' ? (
+        {mounted && (theme === 'dark' || resolvedTheme === 'dark') ? (
           <Icon name="light" className={`w-4 h-4`}></Icon>
         ) : (
           <Icon name="dark" className={`w-4 h-4`}></Icon>
