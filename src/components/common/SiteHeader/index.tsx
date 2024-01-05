@@ -71,7 +71,7 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 flex h-[5.5rem] bg-inherit z-[99]">
-        <div className="px-4 sm:px-0 mx-auto max-w-5xl flex-1 flex justify-between items-center">
+        <div className="px-4 mx-auto max-w-5xl flex-1 flex justify-between items-center">
           <HeaderLeft />
           <HeaderRight display={display} toggleMenuShow={() => toggleMenuShow(false)} />
           <ToggleTheme />

@@ -24,13 +24,18 @@ export const mdxComponents = {
   ),
   ul: (props: any) => {
     if (props.className === 'contains-task-list') {
-      console.log('1111111111', props.children)
+      const taskListItem = props.children.filter((item: any) => item.props).map((item: any) => item.props.children)
 
       return (
-        <ul {...props} className="my-4 text-3xl [&>li>input]:w-6 [&>li>input]:h-6">
-          <li>
-            <span className='text-red-500'>{props.children}</span>
-          </li>
+        <ul {...props} className="my-4 text-2xl">
+          {taskListItem.map((item: any, index: number) => (
+            <li
+              key={index}
+              className="flex items-center [&>input]:mr-2 [&>input]:checkbox [&>input]:checkbox-md [&>input]:checkbox-accent [&>input:disabled]:bg-[initial] [&>input:disabled]:border-[#00d7c0] [&>input:disabled]:opacity-100"
+            >
+              {item}
+            </li>
+          ))}
         </ul>
       )
     } else {
@@ -63,14 +68,9 @@ export const mdxComponents = {
 
     return <CodeBlock codeBlock={codeblock} language={language} />
   },
-  // input: (props: any) => {
-  //   console.log(props)
-
-  //   return <div>{props.children}</div>
-  // },
-  // table: (props: any) => {
-  //   return <h2 className="text-red-500 text-5xl">Hello World</h2>
-  // },
+  table: (props: any) => {
+    return <table className="table [&>thead]:text-inherit">{props.children}</table>
+  },
   MyComponent: (props: { num: number }) => (
     <div className="border">
       <h2>Title</h2>
