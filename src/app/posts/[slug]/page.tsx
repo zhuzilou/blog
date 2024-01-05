@@ -1,18 +1,23 @@
 // app/posts/[slug]/page.tsx
+
 import dayjs from 'dayjs'
 import { allPosts } from 'contentlayer/generated'
+import { useMDXComponent } from 'next-contentlayer/hooks'
+import { notFound } from 'next/navigation'
+import mdxComponents from '@/components/common/MdxComponents'
 
-export const generateStaticParams = async () => allPosts.map(post => ({ slug: post._raw.flattenedPath }))
-
-export const generateMetadata = ({ params }: { params: { slug: string } }) => {
-  const post = allPosts.find(post => post._raw.flattenedPath === params.slug)
-  if (!post) throw new Error(`Post not found for slug: ${params.slug}`)
-  return { title: post.title }
+export async function generateStaticParams() {
+  return allPosts.map(post => ({
+    slug: post._raw.flattenedPath,
+  }))
 }
 
-const PostLayout = ({ params }: { params: { slug: string } }) => {
+export default async function PostLayout({ params }: { params: { slug: string } }) {
   const post = allPosts.find(post => post._raw.flattenedPath === params.slug)
-  if (!post) throw new Error(`Post not found for slug: ${params.slug}`)
+
+  if (!post) notFound()
+
+  const MDXContent = useMDXComponent(post.body.code)
 
   return (
     <article className="mx-auto max-w-5xl py-5 sm:p-5">
@@ -22,9 +27,7 @@ const PostLayout = ({ params }: { params: { slug: string } }) => {
         </time>
         <h1 className="text-3xl font-bold">{post.title}</h1>
       </div>
-      <div className="[&>*]:mb-3 [&>*:last-child]:mb-0" dangerouslySetInnerHTML={{ __html: post.body.html }} />
+      <MDXContent components={mdxComponents} />
     </article>
   )
 }
-
-export default PostLayout

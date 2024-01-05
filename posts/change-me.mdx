@@ -6,9 +6,15 @@ description: Hello World!
 
 When you change a source file, Contentlayer automatically updates the content cache, which prompts Next.js to reload the content on screen.
 
-
-```js
+```javascript
 const num = 1
+console.log(num)
 
-console.log(1)
+const num = 2
+console.log(num)
+
+const num = 3
+console.log(num)
 ```
+
+<MyComponent num={100} />
