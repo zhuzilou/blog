@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 
 function PostCard(post: Post) {
   return (
-    <Link href={post.url} className="text-blue-700 hover:text-blue-900 dark:text-blue-400">
+    <Link href={`/posts/${post.url}`} className="text-blue-700 hover:text-blue-900 dark:text-blue-400">
       <div className="mb-8 py-6 px-2 mx-auto rounded-lg cursor-pointer sm:hover:bg-[#f9fafb]">
         <h2 className="mb-1 text-xl">{post.title}</h2>
         <time dateTime={post.date} className="mb-2 block text-xs text-gray-600 dark:text-gray-300">

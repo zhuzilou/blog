@@ -8,12 +8,12 @@ import mdxComponents from '@/components/common/MdxComponents'
 
 export async function generateStaticParams() {
   return allPosts.map(post => ({
-    slug: post._raw.flattenedPath,
+    slug: post.url,
   }))
 }
 
 export default async function PostLayout({ params }: { params: { slug: string } }) {
-  const post = allPosts.find(post => post._raw.flattenedPath === params.slug)
+  const post = allPosts.find(post => post.url === params.slug)
 
   if (!post) notFound()
 
