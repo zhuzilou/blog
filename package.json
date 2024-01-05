@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@giscus/react": "^2.4.0",
     "contentlayer": "^0.3.4",
     "dayjs": "^1.11.10",
     "next": "14.0.4",
