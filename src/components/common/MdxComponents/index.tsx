@@ -1,6 +1,7 @@
 import { CodeBlock } from './CodeBlock'
 import Icon from '../SiteIcon'
 import { Heading1, Heading2, Heading3, HeadingSmall } from './HeadingTags'
+import Alert from '@/components/SiteAlert'
 
 export const mdxComponents = {
   h1: Heading1,
@@ -68,12 +69,7 @@ export const mdxComponents = {
   table: (props: any) => {
     return <table className="table [&>thead]:text-inherit">{props.children}</table>
   },
-  MyComponent: (props: { num: number }) => (
-    <div className="border">
-      <h2>Title</h2>
-      <p>Hello World! {props.num}</p>
-    </div>
-  ),
+  Alert: Alert,
 }
 
 export default mdxComponents
