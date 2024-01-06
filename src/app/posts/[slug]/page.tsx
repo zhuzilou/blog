@@ -30,13 +30,14 @@ export default async function PostLayout({ params }: { params: { slug: string } 
   const MDXContent = useMDXComponent(post.body.code)
 
   return (
-    <div className="mx-auto max-w-5xl py-5 sm:p-5">
+    <div className="mx-auto sm:my-5 max-w-5xl py-5 sm:p-5 bg-base-100 rounded-lg">
       <article className="mb-20">
-        <div className="mb-8 text-center">
-          <time dateTime={post.date} className="mb-1 text-xs text-gray-600">
+        {/* <div className="mb-8 text-center"> */}
+        <div className="text-center">
+          <time dateTime={post.date} className="mb-1 text-xs">
             {dayjs(post.date).format('YYYY年MM月DD日')}
           </time>
-          <h1 className="text-3xl font-bold">{post.title}</h1>
+          <h1 className="text-4xl font-bold">{post.title}</h1>
         </div>
         <MDXContent components={mdxComponents} />
       </article>

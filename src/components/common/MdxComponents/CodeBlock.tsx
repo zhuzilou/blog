@@ -24,11 +24,11 @@ export const CodeBlock = (props: { codeBlock: string; language: string }) => {
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
         <div className="my-2 py-3 bg-[#1e1e1e] rounded-md">
           <div className="px-4 flex justify-end items-center" data-language={language}>
-            {language && <span className="text-white text-xs select-none">{language}</span>}
+            {language && <span className="text-xs text-white select-none">{language}</span>}
 
             <button className="ml-4" onClick={() => copyCode()}>
               {isCopy ? (
-                <Icon className="w-4 h-4 text-green-500" name="success" />
+                <Icon className="w-4 h-4 text-success" name="success" />
               ) : (
                 <Icon className="w-4 h-4 text-white" name="copy" />
               )}

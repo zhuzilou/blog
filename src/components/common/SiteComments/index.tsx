@@ -18,7 +18,7 @@ export default function SiteComments(props: { slug: string }) {
       reactionsEnabled="1"
       emitMetadata="1"
       inputPosition="top"
-      theme={theme}
+      theme={theme === 'light' ? theme : 'dark'}
       lang="zh-CN"
       loading="lazy"
     />

@@ -15,10 +15,7 @@ export const mdxComponents = {
     </p>
   ),
   code: (props: any) => (
-    <code
-      {...props}
-      className="mx-2 py-1 px-2 text-[#476582] bg-[#f6f6f7] dark:text-[#c9def1] dark:bg-[#313136] rounded-md transition-colors"
-    >
+    <code {...props} className="mx-2 py-1 px-2 bg-neutral text-neutral-content rounded-md transition-colors">
       {props.children}
     </code>
   ),
@@ -57,7 +54,7 @@ export const mdxComponents = {
     </li>
   ),
   a: (props: any) => (
-    <a {...props} className="px-2 text-green-600 dark:text-green-300" target="_blank">
+    <a {...props} className="px-2 text-success" target="_blank">
       <span className="pr-2">{props.children}</span>
       <Icon name="link" className="inline-block w-4 h-4" />
     </a>

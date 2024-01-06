@@ -15,9 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-CN">
       <body>
         <ThemeProviders>
-          <div className="relative pt-[5.5rem] flex flex-col min-h-screen text-slate-900 dark:text-slate-50 bg-white dark:bg-slate-950">
+          <div className="relative pt-[5.5rem] flex flex-col min-h-screen text-base-content bg-base-200 transition-colors">
             <SiteHeader />
-            <main className="flex-grow px-4">{children}</main>
+            <main className="flex-grow px-4 bg-base-100 sm:bg-inherit">{children}</main>
 
             <script src="/iconfont.js" async></script>
           </div>

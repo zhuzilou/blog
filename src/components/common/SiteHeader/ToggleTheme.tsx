@@ -21,10 +21,10 @@ function ToggleTheme() {
       <button
         aria-label="Toggle Dark Mode"
         className="ml-auto sm:ml-1 p-1 rounded-md w-8 h-8 flex justify-center items-center"
-        onClick={() => setTheme(theme === 'dark' || resolvedTheme === 'dark' ? 'light' : 'dark')}
+        onClick={() => setTheme(theme === 'night' || resolvedTheme === 'night' ? 'light' : 'night')}
       >
         <span className="sr-only">Toggle mode</span>
-        {mounted && (theme === 'dark' || resolvedTheme === 'dark') ? (
+        {mounted && (theme === 'night' || resolvedTheme === 'night') ? (
           <Icon name="light" className={`w-4 h-4`}></Icon>
         ) : (
           <Icon name="dark" className={`w-4 h-4`}></Icon>

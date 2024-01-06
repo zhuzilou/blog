@@ -11,6 +11,9 @@ const config: Config = {
     extend: {},
   },
   plugins: [daisyui],
-  darkMode: 'class',
+  darkMode: 'media',
+  daisyui: {
+    themes: ['light', 'night'],
+  },
 }
 export default config

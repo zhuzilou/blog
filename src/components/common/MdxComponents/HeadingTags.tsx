@@ -22,10 +22,10 @@ const Heading: React.FC<HeadingProps> = ({ level, children }) => {
       id={`${url}`}
       className={`${
         HeadingLevelClass[level as keyof typeof HeadingLevelClass]
-      } tracking-tight border-t border-gray-200 dark:border-gray-800 transition-colors`}
+      } tracking-tight border-t transition-colors`}
     >
       <a href={`#${url}`}>
-        <span className="mr-2 text-green-600 dark:text-green-300">#</span>
+        <span className="mr-2 text-success">#</span>
         {children as string}
       </a>
     </HeadingTag>

@@ -1,7 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-
 import Icon from '@/components/common/SiteIcon'
 
 function ToggleMenuShow(props: { display: Boolean; toggleMenuShow: Function }) {
@@ -12,7 +10,7 @@ function ToggleMenuShow(props: { display: Boolean; toggleMenuShow: Function }) {
   return (
     <>
       <button
-        className="sm:hidden ml-1 sm:ml-4 p-1 rounded-md w-8 h-8 flex justify-center items-center text-slate-900 dark:text-slate-100"
+        className="sm:hidden ml-1 sm:ml-4 p-1 rounded-md w-8 h-8 flex justify-center items-center"
         onClick={() => toggleMenuShow()}
       >
         <span className="sr-only">Toggle Menu Show</span>
