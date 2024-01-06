@@ -9,19 +9,14 @@ import ToggleMenuShow from './ToggleMenuShow'
 
 const headerNavLinks = [
   { href: '/', title: '首页' },
-  { href: '/tags', title: '归档' },
+  { href: '/tags', title: '标签' },
   { href: '/about', title: '关于' },
 ]
 
 function HeaderLeft() {
   return (
-    <Link href={'/'}>
-      <div className="flex items-center justify-between">
-        <div className="mr-3">
-          <Image priority className="rounded-full" src="/avatar.jpg" width={48} height={48} alt="头像"></Image>
-        </div>
-        <div className="hidden text-xl font-medium sm:block">djdg626</div>
-      </div>
+    <Link href={'/'} className="text-xl font-bold">
+      djdg626的博客
     </Link>
   )
 }

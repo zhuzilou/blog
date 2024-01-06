@@ -2,22 +2,28 @@
 import Link from 'next/link'
 import { allPosts, Post } from 'contentlayer/generated'
 import dayjs from 'dayjs'
+import SiteSidebar from '@/components/SiteSidebar'
 
 function PostCard(post: Post) {
-  return (
-    <div className="mt-8 px-2 sm:px-4 py-6 mx-auto rounded-lg cursor-pointer bg-base-100 group">
-      <Link href={`/posts/${post.url}`}>
-        <div className="flex justify-between items-center">
-          <time dateTime={post.date} className="text-xs text-secondary">
-            {dayjs(post.date).format('YYYY年MM月DD日')}
-          </time>
-          <div className="flex">
-            <span className="text-xs font-medium mx-2 text-secondary hover:text-heading pointer-events-auto">#Web</span>
-          </div>
-        </div>
+  const tags = post.tag ? post.tag.split(',') : ['默认']
 
+  return (
+    <div className="mt-8 px-2 sm:px-4 py-6 mx-auto rounded-lg bg-base-100 group">
+      <div className="flex justify-between items-center">
+        <time dateTime={post.date} className="text-xs">
+          {dayjs(post.date).format('YYYY年MM月DD日')}
+        </time>
+        <div className="flex">
+          {tags.map(tag => (
+            <Link key={tag} href={`/tags/${tag}`}>
+              <span className="text-xs font-medium mx-2 text-secondary pointer-events-auto">#{tag}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+      <Link prefetch href={`/posts/${post.url}`}>
         <div className="mt-3">
-          <h2 className="text-xl font-bold text-heading group-hover:text-primary">{post.title}</h2>
+          <h2 className="text-xl font-bold">{post.title}</h2>
 
           <p className="mt-2 text-default">{post.description || '暂无描述'}</p>
         </div>
@@ -32,16 +38,14 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-5xl py-8 flex">
       <div className="flex-1">
-        <div className="bg-base-100 min-h-40"></div>
+        <div className="bg-base-100 h-48 sm:h-64 rounded-lg"></div>
 
         {posts.map((post, idx) => (
           <PostCard key={idx} {...post} />
         ))}
       </div>
 
-      <div className="hidden sm:block ml-10 w-72 bg-base-100">
-        <h2 className="text-3xl text-red-700 min-h-screen">Hello World</h2>
-      </div>
+      <SiteSidebar />
     </div>
   )
 }
