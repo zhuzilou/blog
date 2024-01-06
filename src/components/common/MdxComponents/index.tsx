@@ -29,7 +29,7 @@ export const mdxComponents = {
           {taskListItem.map((item: any, index: number) => (
             <li
               key={index}
-              className="flex items-center [&>input]:mr-2 [&>input]:checkbox [&>input]:checkbox-md [&>input]:checkbox-accent [&>input:disabled]:bg-[initial] [&>input:disabled]:border-[#00d7c0] [&>input:disabled]:opacity-100"
+              className="flex items-center [&>input]:mr-2 [&>input]:checkbox [&>input]:checkbox-md [&>input]:checkbox-success [&>input:disabled]:bg-[initial] [&>input:disabled]:border-[#00d7c0] [&>input:disabled]:opacity-100"
             >
               {item}
             </li>

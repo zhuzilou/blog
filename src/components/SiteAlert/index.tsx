@@ -20,6 +20,8 @@ function AlertBase({ type = 'info', msg = type }: { type?: Type; msg?: string })
     <div role="alert" className={`my-3 alert alert-${type}`}>
       <AlertIcon type={type} />
       <span>{msg}</span>
+
+      <span className="hidden alert-info alert-success alert-warning alert-error"></span>
     </div>
   )
 }

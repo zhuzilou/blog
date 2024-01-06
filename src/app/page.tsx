@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { allPosts, Post } from 'contentlayer/generated'
 import dayjs from 'dayjs'
 import SiteSidebar from '@/components/SiteSidebar'
+import SiteSlide from '@/components/SiteSlide'
 
 function PostCard(post: Post) {
   const tags = post.tag ? post.tag.split(',') : ['默认']
@@ -38,7 +39,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-5xl py-8 flex">
       <div className="flex-1">
-        <div className="bg-base-100 h-48 sm:h-64 rounded-lg"></div>
+        <SiteSlide />
 
         {posts.map((post, idx) => (
           <PostCard key={idx} {...post} />
