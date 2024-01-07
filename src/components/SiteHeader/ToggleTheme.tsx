@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 
-import Icon from '@/components/common/SiteIcon'
+import Icon from '@/components/SiteIcon'
 
 function ToggleTheme() {
   const [mounted, setMounted] = useState(true)

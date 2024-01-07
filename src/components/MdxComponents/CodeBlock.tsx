@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Highlight } from 'prism-react-renderer'
 
-import Icon from '@/components/common/SiteIcon'
+import Icon from '@/components/SiteIcon'
 
 export const CodeBlock = (props: { codeBlock: string; language: string }) => {
   const [isCopy, setIsCopy] = useState(false)

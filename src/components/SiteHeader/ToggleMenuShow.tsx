@@ -1,6 +1,6 @@
 'use client'
 
-import Icon from '@/components/common/SiteIcon'
+import Icon from '@/components/SiteIcon'
 
 function ToggleMenuShow(props: { display: Boolean; toggleMenuShow: Function }) {
   const toggleMenuShow = () => {

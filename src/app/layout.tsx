@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import './globals.css'
-import SiteHeader from '@/components/common/SiteHeader'
+import SiteHeader from '@/components/SiteHeader'
 
 export const metadata: Metadata = {
   title: 'Blog of djdg626',

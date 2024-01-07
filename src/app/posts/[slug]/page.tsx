@@ -4,8 +4,8 @@ import { Metadata } from 'next'
 import { allPosts } from 'contentlayer/generated'
 import { useMDXComponent } from 'next-contentlayer/hooks'
 import { notFound } from 'next/navigation'
-import mdxComponents from '@/components/common/MdxComponents'
-import SiteComments from '@/components/common/SiteComments'
+import mdxComponents from '@/components/MdxComponents'
+import SiteComments from '@/components/SiteComments'
 import dayjs from 'dayjs'
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
