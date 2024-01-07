@@ -6,7 +6,7 @@ export default function PostCard(post: Post) {
   const tags = post.tag ? post.tag.split(',') : ['默认']
 
   return (
-    <div className="mt-8 px-2 sm:px-4 py-6 mx-auto rounded-lg bg-base-100 group">
+    <div className="mb-8 px-2 sm:px-4 py-6 mx-auto rounded-lg bg-base-100 group">
       <div className="flex justify-between items-center">
         <time dateTime={post.date} className="text-xs">
           {dayjs(post.date).format('YYYY年MM月DD日')}

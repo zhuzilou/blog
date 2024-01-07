@@ -33,7 +33,7 @@ export default function List({ params }: { params: { page: string } }) {
     <>
       <div className="mx-auto max-w-5xl py-8 flex">
         <div className="flex-1">
-          <SiteSlide />
+          {/* <SiteSlide /> */}
 
           <ListLayout currentPage={+params.page} posts={posts} />
         </div>
