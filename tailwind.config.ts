@@ -5,13 +5,14 @@ const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/layout/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {},
   },
   plugins: [daisyui],
-  darkMode: 'media',
+  darkMode: ['class', '[data-theme="night"]'],
   daisyui: {
     themes: ['light', 'night'],
   },
