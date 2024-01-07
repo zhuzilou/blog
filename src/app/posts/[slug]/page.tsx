@@ -4,7 +4,7 @@ import { Metadata } from 'next'
 import { allPosts } from 'contentlayer/generated'
 import { useMDXComponent } from 'next-contentlayer/hooks'
 import { notFound } from 'next/navigation'
-import mdxComponents from '@/components/MdxComponents'
+import mdxComponents from '@/layout/MdxLayout'
 import SiteComments from '@/components/SiteComments'
 import dayjs from 'dayjs'
 

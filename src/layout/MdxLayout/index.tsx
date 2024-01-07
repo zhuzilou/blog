@@ -1,5 +1,5 @@
 import { CodeBlock } from './CodeBlock'
-import Icon from '../SiteIcon'
+import Icon from '@/components/SiteIcon'
 import { Heading1, Heading2, Heading3, HeadingSmall } from './HeadingTags'
 import Alert from '@/components/SiteAlert'
 
