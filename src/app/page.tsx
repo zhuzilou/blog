@@ -4,6 +4,7 @@ import { allPosts, Post } from 'contentlayer/generated'
 import dayjs from 'dayjs'
 import SiteSidebar from '@/components/SiteSidebar'
 import SiteSlide from '@/components/SiteSlide'
+import SitePagination from '@/components/SitePagination'
 
 function PostCard(post: Post) {
   const tags = post.tag ? post.tag.split(',') : ['默认']
@@ -44,6 +45,8 @@ export default function Home() {
         {posts.map((post, idx) => (
           <PostCard key={idx} {...post} />
         ))}
+
+        <SitePagination />
       </div>
 
       <SiteSidebar />
