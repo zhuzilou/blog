@@ -1,47 +1,15 @@
-import Link from 'next/link'
 import { allPosts, Post } from 'contentlayer/generated'
-import dayjs from 'dayjs'
 import SitePagination from '@/components/SitePagination'
 import dataConfig from 'data'
-
-function PostCard(post: Post) {
-  const tags = post.tag ? post.tag.split(',') : ['默认']
-
-  return (
-    <div className="mt-8 px-2 sm:px-4 py-6 mx-auto rounded-lg bg-base-100 group">
-      <div className="flex justify-between items-center">
-        <time dateTime={post.date} className="text-xs">
-          {dayjs(post.date).format('YYYY年MM月DD日')}
-        </time>
-        <div className="flex">
-          {tags.map(tag => (
-            <Link key={tag} href={`/tags/${tag}`}>
-              <span className="text-xs font-medium mx-2 text-secondary pointer-events-auto">#{tag}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-      <Link prefetch href={`/posts/${post.url}`}>
-        <div className="mt-3">
-          <h2 className="text-xl font-bold">{post.title}</h2>
-
-          <p className="mt-2 text-default">{post.description || '暂无描述'}</p>
-        </div>
-      </Link>
-    </div>
-  )
-}
+import PostCard from '@/components/SitePostCard'
 
 interface IListLayoutProps {
   currentPage: number
+  posts: Post[]
+  isPaginated?: boolean
 }
 
-export default function ListLayout({ currentPage }: IListLayoutProps) {
-  const start = (currentPage - 1) * dataConfig.totalPageSize
-  const end = start + dataConfig.totalPageSize
-
-  const posts = allPosts.sort((a, b) => (dayjs(a.date).isBefore(b.date) ? 1 : -1)).slice(start, end)
-
+export default function ListLayout({ currentPage, posts, isPaginated = true }: IListLayoutProps) {
   const totalPages = Math.ceil(allPosts.length / dataConfig.totalPageSize)
 
   return (
@@ -50,7 +18,7 @@ export default function ListLayout({ currentPage }: IListLayoutProps) {
         <PostCard key={idx} {...post} />
       ))}
 
-      <SitePagination currentPage={currentPage} totalPages={totalPages} />
+      {isPaginated && <SitePagination currentPage={currentPage} totalPages={totalPages} />}
     </>
   )
 }
