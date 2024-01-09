@@ -2,6 +2,7 @@ import { CodeBlock } from './CodeBlock'
 import Icon from '@/components/SiteIcon'
 import { Heading1, Heading2, Heading3, HeadingSmall } from './HeadingTags'
 import Alert from '@/components/SiteAlert'
+import ImgBlock from './ImgBlock'
 
 export const mdxComponents = {
   h1: Heading1,
@@ -11,9 +12,9 @@ export const mdxComponents = {
   h5: HeadingSmall,
   h6: HeadingSmall,
   p: (props: any) => (
-    <p {...props} className="my-4 leading-7">
+    <div {...props} className="my-4 leading-7">
       {props.children}
-    </p>
+    </div>
   ),
   code: (props: any) => (
     <code {...props} className="mx-2 py-1 px-2 bg-neutral text-neutral-content rounded-md transition-colors">
@@ -70,6 +71,7 @@ export const mdxComponents = {
     return <table className="table [&>thead]:text-inherit">{props.children}</table>
   },
   Alert: Alert,
+  img: ImgBlock,
 }
 
 export default mdxComponents
