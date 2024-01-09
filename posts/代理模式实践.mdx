@@ -1,0 +1,115 @@
+---
+title: JavaScript代理模式实践
+date: 2023-01-05
+tag: 设计模式
+description: 代理模式可以拦截控制对目标对象的操作，给目标对象提供渐进式增强的能力。本文实现了图片懒加载、计算缓存的代理模式
+---
+
+## 代理模式的定义
+
+代理模式是给一个目标对象提供一个代理对象，拦截控制对目标对象的操作。代理对象可以给目标对象提供`渐进式增强`的能力。
+
+## 代理模式实现图片懒加载
+
+使用代理模式，使图片加载时有一个默认占位图片。在慢速 3g 的情况下，不使用图片代理，页面将有 5s 左右的空白，然后图片慢慢显示。使用图片代理，页面将直接显示缓存的（或使用本地的）占位图片，在图片加载完成后替换为请求到的原图片。
+
+```js
+const myImage = (function () {
+  const image = document.createElement('img')
+
+  document.body.appendChild(image)
+
+  return {
+    setSrc: function (src) {
+      image.src = src
+    },
+  }
+})()
+
+const proxyImage = (function () {
+  const image = new Image()
+
+  image.onload = function () {
+    myImage.setSrc(this.src)
+  }
+
+  return {
+    setSrc: function (src) {
+      myImage.setSrc(`http://s5nvjgtjr.hd-bkt.clouddn.com/202401082205206.png`)
+
+      image.src = src
+    },
+  }
+})()
+
+// 添加时间戳避免被缓存
+const targetImage = 'http://s5nvjgtjr.hd-bkt.clouddn.com/202401082156214.png?time=' + Date.now()
+
+// myImage.setSrc(targetImage)
+
+proxyImage.setSrc(targetImage)
+```
+
+## 使用代理模式的好处
+
+如果不使用代理模式，而是直接处理原对象，也可以做到图片占位加载。但是这不符合面向对象原则中的单一职责原则。如果有对象有多个功能，那么这个对象会变得难以维护，以图片加载为例，myImage 对象将同时负责图片占位和图片加载两个功能。此外，如果我们因为某种原因不再需要某个功能（图片占位），可以直接把代理对象替换为原对象，而不需要做出额外的代码改动。
+
+## 代理模式实现计算结果缓存
+
+通过代理模式，轻松实现了计算结果的缓存，同时并不修改原先的异步计算函数，后续二次调用无需等待性能开销（异步操作时间）。
+![](http://s5nvjgtjr.hd-bkt.clouddn.com/202401082259543.png)
+```js
+;(async () => {
+  // 异步计算结果缓存
+
+  const add = function (a, b) {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(a + b), 1000)
+    })
+  }
+
+  const compute = async (fn, ...args) => {
+    if (args.length < 2) throw new Error('入参长度大于1')
+
+    while (args.length !== 2) {
+      const result = await fn.apply(null, args.splice(0, 2))
+      args.unshift(result)
+    }
+
+    console.log('完成了一次耗时计算')
+
+    return args[0] + args[1]
+  }
+
+  const cacheCompute = async fn => {
+    const cache = {}
+
+    return async function (...args) {
+      const key = args.join(',')
+
+      if (typeof cache[key] === 'undefined') {
+        cache[key] = await compute(fn, ...args)
+
+        return cache[key]
+      } else {
+        return cache[key]
+      }
+    }
+  }
+
+  // 不使用代理，计算长度为9的数字合集，需要9秒
+  compute(add, 1, 2, 3).then(result => console.log('不使用缓存', result))
+
+  const cacheComputeAdd = await cacheCompute(add)
+
+  cacheComputeAdd(1, 2, 3).then(result => console.log('缓存计算第一次', result))
+
+  setTimeout(() => {
+    cacheComputeAdd(1, 2, 3).then(result => console.log('后续缓存结果', result))
+
+    cacheComputeAdd(1, 2, 3).then(result => console.log('后续缓存结果', result))
+
+    cacheComputeAdd(1, 2, 3).then(result => console.log('后续缓存结果', result))
+  }, 3000)
+})()
+```
