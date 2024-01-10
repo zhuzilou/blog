@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useTheme } from 'next-themes'
-
 import Icon from '@/components/SiteIcon'
+import { useSwitchTheme } from '@/lib/switchTheme'
 
 function ToggleTheme() {
   const [mounted, setMounted] = useState(true)
-  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { theme, switchTheme } = useSwitchTheme()
 
   // When mounted on client, now we can show the UI
   useEffect(() => setMounted(true), [])
@@ -21,10 +20,9 @@ function ToggleTheme() {
       <button
         aria-label="Toggle Dark Mode"
         className="ml-auto sm:ml-1 p-1 rounded-md w-8 h-8 flex justify-center items-center"
-        onClick={() => setTheme(theme === 'night' || resolvedTheme === 'night' ? 'light' : 'night')}
+        onClick={() => switchTheme()}
       >
-        <span className="sr-only">Toggle mode</span>
-        {mounted && (theme === 'night' || resolvedTheme === 'night') ? (
+        {mounted && theme === 'night' ? (
           <Icon name="light" className={`w-4 h-4`}></Icon>
         ) : (
           <Icon name="dark" className={`w-4 h-4`}></Icon>

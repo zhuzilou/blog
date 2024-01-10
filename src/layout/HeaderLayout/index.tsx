@@ -1,16 +1,17 @@
 'use client'
 
 import React, { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
-
-import ToggleTheme from './ToggleTheme'
-import ToggleMenuShow from './ToggleMenuShow'
 
 const headerNavLinks = [
   { href: '/', title: '首页' },
   { href: '/tags', title: '标签' },
   { href: '/about', title: '关于' },
 ]
+
+const ToggleTheme = dynamic(() => import('./ToggleTheme'), { ssr: false })
+const ToggleMenuShow = dynamic(() => import('./ToggleMenuShow'), { ssr: false })
 
 function HeaderLeft() {
   return (
