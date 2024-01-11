@@ -1,6 +1,7 @@
 'use client'
 
 import Giscus from '@giscus/react'
+import dataConfig from 'data'
 import { useThemeStore } from 'stores/theme-store'
 
 export default function SiteComments(props: { slug: string }) {

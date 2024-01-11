@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Icon from '@/components/SiteIcon'
 import { useThemeStore } from 'stores/theme-store'
 import { shallow } from 'zustand/shallow'
+import dataConfig from 'data'
 
 function ToggleTheme() {
   const [mounted, setMounted] = useState(true)
@@ -15,21 +16,19 @@ function ToggleTheme() {
     shallow
   )
 
-  // When mounted on client, now we can show the UI
   useEffect(() => {
-    const initialTheme = window.localStorage.getItem('data-theme') || 'light'
+    const initialTheme = window.localStorage.getItem('data-theme') || dataConfig.defaultTheme
 
-    const theme = initialTheme !== 'light' ? 'night' : 'light'
+    const theme = initialTheme !== dataConfig.themeLight ? dataConfig.themeDark : dataConfig.themeLight
 
     localStorage.setItem('data-theme', theme)
     document.documentElement.setAttribute('data-theme', theme)
 
-    if (initialTheme !== 'light') {
-      console.log('callback toggleDark')
-
+    if (initialTheme !== dataConfig.themeLight) {
       toggleDark()
     }
 
+    // When mounted on client, now we can show the UI
     setMounted(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -39,7 +38,7 @@ function ToggleTheme() {
   }
 
   const switchTheme = () => {
-    const theme = isDark ? 'light' : 'night'
+    const theme = isDark ? dataConfig.themeLight : dataConfig.themeDark
     toggleDark()
     localStorage.setItem('data-theme', theme)
     document.documentElement.setAttribute('data-theme', theme)
