@@ -4,9 +4,12 @@ import { Metadata } from 'next'
 import { allPosts } from 'contentlayer/generated'
 import { useMDXComponent } from 'next-contentlayer/hooks'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import dayjs from 'dayjs'
 import mdxComponents from '@/layout/MdxLayout'
 import SiteComments from '@/components/SiteComments'
-import dayjs from 'dayjs'
+import SiteCatalogue from '@/components/SiteCatalogue'
+import { getTitles } from '@/lib/getTitles'
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = allPosts.find(post => post.url === params.slug)
@@ -22,10 +25,14 @@ export async function generateStaticParams() {
   }))
 }
 
+export type IButtonTypes = 'btn-primary' | 'btn-secondary' | 'btn-accent'
+
 export default async function PostLayout({ params }: { params: { slug: string } }) {
   const post = allPosts.find(post => post.url === params.slug)
 
   if (!post) notFound()
+
+  const titles = getTitles(post.body.raw)
 
   const MDXContent = useMDXComponent(post.body.code)
 
@@ -36,6 +43,19 @@ export default async function PostLayout({ params }: { params: { slug: string } 
           <time dateTime={post.date} className="mb-1 text-xs">
             {dayjs(post.date).format('YYYY年MM月DD日')}
           </time>
+          {post.tag && (
+            <div className="flex justify-center items-center">
+              {post.tag.split(',').map((tag, index) => {
+                const buttonClass = ('btn-' + ['primary', 'secondary', 'accent'][index % 3]) as IButtonTypes
+
+                return (
+                  <Link href={`/tags/${tag}`} className={`mx-1 my-3 btn btn-sm ${buttonClass}`} key={tag} as={'button'}>
+                    {tag}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
           <h1 className="text-4xl font-bold">{post.title}</h1>
         </div>
 
