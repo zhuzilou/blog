@@ -6,6 +6,15 @@ pre > code {
   @apply !overflow-x-auto !px-1 !py-2 !pb-3;
 }
 
+pre > .row {
+  @apply relative;
+}
+
+pre > .row::before {
+  @apply content-[''] absolute top-1/2 left-[0.625rem] w-3 h-3 bg-[#fe5f59] rounded-full -translate-y-1/2;
+  box-shadow: 20px 0 #febb2c, 40px 0 #29c73f;
+}
+
 code {
   @apply !py-0 !ml-0 !bg-inherit !rounded-none;
 }

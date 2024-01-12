@@ -24,7 +24,7 @@ export function CodeBlock({ children }: CodeBlockProps) {
 
   return (
     <pre className="relative mx-auto rounded-md bg-neutral">
-      <div className="px-4 py-2 flex justify-end items-center bg-slate-600 rounded-t-md" data-language={language}>
+      <div className="row px-4 py-2 flex justify-end items-center bg-slate-600 rounded-t-md" data-language={language}>
         <span className="text-white select-none">{language}</span>
 
         <button className="ml-4 flex items-center" onClick={() => copy()}>
