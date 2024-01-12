@@ -3,6 +3,7 @@ import crypto from 'crypto'
 
 import { defineDocumentType, makeSource } from 'contentlayer/source-files'
 import remarkGfm from 'remark-gfm'
+import rehypePrettyCode, { type Options as PrettyCodeOptions } from 'rehype-pretty-code'
 
 export const Post = defineDocumentType(() => ({
   name: 'Post',
@@ -31,6 +32,20 @@ export default makeSource({
   documentTypes: [Post],
   mdx: {
     remarkPlugins: [remarkGfm],
+    rehypePlugins: [
+      [
+        rehypePrettyCode as any,
+        {
+          theme: 'github-dark',
+          onVisitLine(node) {
+            ;(node.properties.className as any) = 'line'
+          },
+          onVisitHighlightedLine(node) {
+            ;(node.properties.className as any) += ' highlighted'
+          },
+        } satisfies Partial<PrettyCodeOptions>,
+      ],
+    ],
   },
 })
 

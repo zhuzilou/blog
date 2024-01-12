@@ -1,4 +1,5 @@
-import { CodeBlock } from './CodeBlock'
+// import { CodeBlock } from './CodeBlock'
+import { CodeBlock } from './code-block'
 import Icon from '@/components/SiteIcon'
 import { Heading1, Heading2, Heading3, HeadingSmall } from './HeadingTags'
 import Alert from '@/components/SiteAlert'
@@ -61,17 +62,16 @@ export const mdxComponents = {
       <Icon name="link" className="inline-block w-4 h-4" />
     </a>
   ),
-  pre: (props: any) => {
-    const codeblock = (props.children.props.children as string).trim()
-    const language = props.children.props.className
-
-    return <CodeBlock codeBlock={codeblock} language={language} />
-  },
+  pre: pre,
   table: (props: any) => {
     return <table className="table [&>thead]:text-inherit">{props.children}</table>
   },
   Alert: Alert,
   img: ImgBlock,
+}
+
+function pre({ children }: React.HTMLProps<HTMLPreElement>) {
+  return <CodeBlock>{children}</CodeBlock>
 }
 
 export default mdxComponents

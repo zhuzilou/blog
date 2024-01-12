@@ -1,11 +1,11 @@
 'use client'
 
 import Giscus from '@giscus/react'
-import dataConfig from 'data'
+import { shallow } from 'zustand/shallow'
 import { useThemeStore } from 'stores/theme-store'
 
 export default function SiteComments(props: { slug: string }) {
-  const isDark = useThemeStore(state => state.isDark)
+  const isDark = useThemeStore(state => state.isDark, shallow)
 
   return (
     <Giscus
