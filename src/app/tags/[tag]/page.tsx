@@ -32,7 +32,7 @@ export default function Tag({ params }: { params: { tag: string } }) {
   return (
     <>
       <div className="my-8 mx-auto max-w-5xl">
-        <h2 className="py-8 text-xl font-bold text-center bg-base-100 rounded-lg">#{tag}</h2>
+        <h2 className="py-8 mb-8 text-xl font-bold text-center bg-base-100 rounded-lg">#{tag}</h2>
 
         <ListLayout currentPage={1} posts={posts} isPaginated={false} />
       </div>

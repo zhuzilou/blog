@@ -8,7 +8,6 @@ import Link from 'next/link'
 import dayjs from 'dayjs'
 import mdxComponents from '@/layout/MdxLayout'
 import SiteComments from '@/components/SiteComments'
-import SiteCatalogue from '@/components/SiteCatalogue'
 import { getTitles } from '@/lib/getTitles'
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
