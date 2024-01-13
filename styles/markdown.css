@@ -3,7 +3,7 @@ pre {
 }
 
 pre > code {
-  @apply !overflow-x-auto !px-1 !py-2 !pb-3;
+  @apply !overflow-x-auto !ml-2 !px-1 !py-2 !pb-3 !bg-inherit !rounded-none;
 }
 
 pre > .row {
@@ -15,22 +15,15 @@ pre > .row::before {
   box-shadow: 20px 0 #febb2c, 40px 0 #29c73f;
 }
 
-code {
-  @apply !py-0 !ml-0 !bg-inherit !rounded-none;
-}
-
-code > .line {
-}
-
-code > .line.highlighted {
+pre > code > .line.highlighted {
   @apply bg-slate-700;
 }
 
-code[data-line-numbers] {
+pre > code[data-line-numbers] {
   counter-reset: line;
 }
 
-code[data-line-numbers] > .line::before {
+pre > code[data-line-numbers] > .line::before {
   counter-increment: line;
   content: counter(line);
   @apply mr-4 inline-block w-4 text-right text-slate-500;

@@ -24,8 +24,23 @@ export async function generateStaticParams() {
     slug: post.url,
   }))
 }
-
 export type IButtonTypes = 'btn-primary' | 'btn-secondary' | 'btn-accent'
+
+const ArticleTags = (tagStr: string) => {
+  return (
+    <div className="flex justify-center items-center">
+      {tagStr.split(',').map((tag, index) => {
+        const buttonClass = ('btn-' + ['primary', 'secondary', 'accent'][index % 3]) as IButtonTypes
+
+        return (
+          <Link href={`/tags/${tag}`} className={`mx-1 btn btn-sm ${buttonClass}`} key={tag} as={'button'}>
+            {tag}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
 
 export default async function PostLayout({ params }: { params: { slug: string } }) {
   const post = allPosts.find(post => post.url === params.slug)
@@ -39,24 +54,14 @@ export default async function PostLayout({ params }: { params: { slug: string } 
   return (
     <div className="mx-auto sm:my-5 max-w-5xl py-5 sm:p-5 bg-base-100 rounded-lg">
       <article className="mb-20">
-        <div className="text-center">
-          <time dateTime={post.date} className="mb-1 text-xs">
-            {dayjs(post.date).format('YYYY年MM月DD日')}
-          </time>
-          {post.tag && (
-            <div className="flex justify-center items-center">
-              {post.tag.split(',').map((tag, index) => {
-                const buttonClass = ('btn-' + ['primary', 'secondary', 'accent'][index % 3]) as IButtonTypes
+        <div className="text-center -mb-4">
+          <h1 className="mt-4 text-4xl font-bold">{post.title}</h1>
 
-                return (
-                  <Link href={`/tags/${tag}`} className={`mx-1 my-3 btn btn-sm ${buttonClass}`} key={tag} as={'button'}>
-                    {tag}
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-          <h1 className="text-4xl font-bold">{post.title}</h1>
+          <div className="flex justify-center my-3 text-xs">
+            <time dateTime={post.date}>{dayjs(post.date).format('YYYY年MM月DD日')}</time>
+          </div>
+
+          {post.tag && ArticleTags(post.tag)}
         </div>
 
         <MDXContent components={mdxComponents} />

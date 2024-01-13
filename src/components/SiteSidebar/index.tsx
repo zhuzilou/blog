@@ -16,7 +16,7 @@ function SiteHeroSection() {
           <span>上海某菜鸡前端</span>
         </div>
         <div className="mt-4 flex justify-center">
-          <Icon name="bilibili" className="ml-3 w-6 h-6 text-info"></Icon>
+          {/* <Icon name="bilibili" className="ml-3 w-6 h-6 text-info"></Icon> */}
           <Icon name="github" className="ml-3 w-6 h-6"></Icon>
         </div>
       </div>
@@ -42,7 +42,7 @@ function SiteCategorySection() {
         <div className="mt-4 flex flex-wrap">
           {tags.map(tag => {
             return (
-              <div key={tag} className="flex-1 basis-20 shrink-0 px-2 py-1 text-center">
+              <div key={tag} className="flex-1 basis-20 shrink-0 px-2 py-1 text-center whitespace-pre">
                 <Link href={`/tags/${tag}`} className={`hover:text-secondary`}>
                   {tag}({tagsAndCounts[tag]})
                 </Link>
