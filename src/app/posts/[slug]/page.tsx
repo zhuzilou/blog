@@ -25,14 +25,16 @@ export async function generateStaticParams() {
 
 export type IButtonTypes = 'btn-primary' | 'btn-secondary' | 'btn-accent'
 
-const ArticleTags = (tagStr: string) => {
+const ArticleTags = ({ tagStr }: { tagStr: string }) => {
   return (
     <div className="flex justify-center items-center">
       {tagStr.split(',').map((tag, index) => {
-        const buttonClass = ('btn-' + ['primary', 'secondary', 'accent'][index % 3]) as IButtonTypes
-
         return (
-          <Link href={`/tags/${tag}`} className={`mx-1 btn btn-sm ${buttonClass}`} key={tag} as={'button'}>
+          <Link
+            href={`/tags/${tag}`}
+            className="mx-1 px-3 bg-base-200 rounded-md hover:bg-info hover:text-info-content"
+            key={tag}
+          >
             {tag}
           </Link>
         )
@@ -58,7 +60,7 @@ export default async function PostLayout({ params }: { params: { slug: string } 
             <time dateTime={post.date}>{dayjs(post.date).format('YYYY年MM月DD日')}</time>
           </div>
 
-          {post.tag && ArticleTags(post.tag)}
+          {post.tag && <ArticleTags tagStr={post.tag} />}
         </div>
 
         <MDXContent components={mdxComponents} />
