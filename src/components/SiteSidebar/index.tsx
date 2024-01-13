@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import Icon from '../SiteIcon'
-import { computeTags } from '@/lib/computeTags'
+import SiteTags from '../SiteTags'
 
 function SiteHeroSection() {
   return (
@@ -37,10 +37,6 @@ function SiteHeroSection() {
 }
 
 function SiteCategorySection() {
-  const tagsAndCounts = computeTags()
-
-  const tags = Object.keys(tagsAndCounts).sort((a, b) => tagsAndCounts[b] - tagsAndCounts[a])
-
   return (
     <>
       <div className="mt-8 px-4 py-6 bg-base-100 rounded-lg">
@@ -49,17 +45,7 @@ function SiteCategorySection() {
           <Icon name="menu" className="ml-3 w-4 h-4"></Icon>
         </div>
 
-        <div className="mt-4 flex flex-wrap">
-          {tags.map(tag => {
-            return (
-              <div key={tag} className="flex-1 basis-20 shrink-0 px-2 py-1 text-center whitespace-pre">
-                <Link href={`/tags/${tag}`} className={`hover:text-secondary`}>
-                  {tag}({tagsAndCounts[tag]})
-                </Link>
-              </div>
-            )
-          })}
-        </div>
+        <SiteTags />
       </div>
     </>
   )
