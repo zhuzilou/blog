@@ -8,7 +8,6 @@ import Link from 'next/link'
 import dayjs from 'dayjs'
 import mdxComponents from '@/layout/MdxLayout'
 import SiteComments from '@/components/SiteComments'
-import { getTitles } from '@/lib/getTitles'
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = allPosts.find(post => post.url === params.slug)
@@ -23,6 +22,7 @@ export async function generateStaticParams() {
     slug: post.url,
   }))
 }
+
 export type IButtonTypes = 'btn-primary' | 'btn-secondary' | 'btn-accent'
 
 const ArticleTags = (tagStr: string) => {
@@ -45,8 +45,6 @@ export default async function PostLayout({ params }: { params: { slug: string } 
   const post = allPosts.find(post => post.url === params.slug)
 
   if (!post) notFound()
-
-  const titles = getTitles(post.body.raw)
 
   const MDXContent = useMDXComponent(post.body.code)
 
