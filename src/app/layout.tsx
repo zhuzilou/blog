@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteHeader />
           <main className="flex-grow px-4 bg-base-100 sm:bg-inherit">{children}</main>
 
-          <Script src="/iconfont.js" strategy="lazyOnload" />
+          <Script src="//at.alicdn.com/t/c/font_3770713_hpdbkm5jz2.js" strategy="lazyOnload" />
         </div>
 
         <SiteScrollTop />
