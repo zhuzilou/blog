@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
@@ -12,6 +12,7 @@ const headerNavLinks = [
 
 const ToggleTheme = dynamic(() => import('./ToggleTheme'), { ssr: false })
 const ToggleMenuShow = dynamic(() => import('./ToggleMenuShow'), { ssr: false })
+const ToggleSearchShow = dynamic(() => import('./ToggleSearchShow'), { ssr: false })
 
 function HeaderLeft() {
   return (
@@ -53,7 +54,7 @@ function HeaderRight(props: { display: Boolean; toggleMenuShow: Function }) {
 export default function Header() {
   const [display, setDisplay] = useState(false)
 
-  const toggleMenuShow = (display: Boolean) => {
+  const toggleMenuShow = useCallback((display: Boolean) => {
     if (display) {
       document.documentElement.classList.add('overflow-hidden')
       setDisplay(true)
@@ -61,7 +62,7 @@ export default function Header() {
       document.documentElement.classList.remove('overflow-hidden')
       setDisplay(false)
     }
-  }
+  }, [])
 
   return (
     <>
@@ -70,6 +71,7 @@ export default function Header() {
           <HeaderLeft />
           <HeaderRight display={display} toggleMenuShow={() => toggleMenuShow(false)} />
           <ToggleTheme />
+          <ToggleSearchShow />
           <ToggleMenuShow display={false} toggleMenuShow={() => toggleMenuShow(true)} />
         </div>
       </header>
