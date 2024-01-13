@@ -1,0 +1,53 @@
+---
+title: 添加mac风格三个圆点
+date: 2023-01-12
+tag: css
+description: 使用伪元素、背景色、阴影，给容器添加位置在左上角的mac风格的红、黄、绿三个小圆点。
+---
+
+## 最终代码
+
+![image-20240112232250877](http://s5nvjgtjr.hd-bkt.clouddn.com/202401122322928.png)
+
+```css
+pre > .row::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  background: #fe5f59;
+  border-radius: 50%;
+  box-shadow: 20px 0 #febb2c, 40px 0 #29c73f;
+  transform: translateY(-50%)
+}
+```
+
+### tailwindcss版本
+
+```css
+pre > .row::before {
+  @apply content-[''] absolute top-1/2 left-[0.625rem] w-3 h-3 bg-[#fe5f59] rounded-full -translate-y-1/2;
+  box-shadow: 20px 0 #febb2c, 40px 0 #29c73f;
+}
+```
+
+## 另一种实现方式
+
+使用了background-image的radial-gradient函数，但是缺点是创建的圆点边缘模糊。因为radial-gradient函数是创建一个渐变的图形的。
+
+![image-20240112232225871](http://s5nvjgtjr.hd-bkt.clouddn.com/202401122322939.png)
+
+```css
+pre > .row {
+  background-position: 10px center;
+
+  background-image:
+    radial-gradient(circle at 10px center, #fe5f59 5px, transparent 0),
+    radial-gradient(circle at 30px center, #febb2c 5px, transparent 0),
+    radial-gradient(circle at 50px center, #29c73f 5px, transparent 0);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+```
