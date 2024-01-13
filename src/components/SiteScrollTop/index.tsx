@@ -10,9 +10,9 @@ function scroll(btnToTop: Element) {
 
   if (scrollPosition > 500) {
     btnToTop.classList.remove('hidden')
-    btnToTop.classList.add('block')
+    btnToTop.classList.add('flex')
   } else {
-    btnToTop.classList.remove('block')
+    btnToTop.classList.remove('flex')
     btnToTop.classList.add('hidden')
   }
 }
@@ -33,7 +33,7 @@ export default function SiteScrollTop() {
   return (
     <button
       ref={btnToTopRef}
-      className="hidden fixed right-3 bottom-3 flex justify-center items-center w-10 h-10 hover:opacity-100 rounded-full hover:bg-base-300 dark:hover:bg-slate-500 transition duration-300 z-40 print:hidden"
+      className="hidden fixed right-3 bottom-3 justify-center items-center w-10 h-10 hover:opacity-100 rounded-full bg-base-100 hover:bg-base-300 dark:hover:bg-slate-500 transition duration-300 z-40 print:hidden"
       onClick={() => scrollToTop()}
     >
       <span className="sr-only">Scroll To Top</span>
