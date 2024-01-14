@@ -15,13 +15,15 @@ function AlertIcon({ type }: { type: Type }) {
   )
 }
 
+type IAlertColor = 'alert-info' | 'alert-success' | 'alert-warning' | 'alert-error'
+
 function AlertBase({ type = 'info', msg = type }: { type?: Type; msg?: string }) {
+  const color = `alert-${type}` as IAlertColor
+
   return (
-    <div role="alert" className={`my-3 alert alert-${type}`}>
+    <div role="alert" className={`my-3 alert ${color}`}>
       <AlertIcon type={type} />
       <span>{msg}</span>
-
-      <span className="hidden alert-info alert-success alert-warning alert-error"></span>
     </div>
   )
 }
