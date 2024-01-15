@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <SiteSearch />
 
-          <Script src="//at.alicdn.com/t/c/font_3770713_hpdbkm5jz2.js" strategy="lazyOnload" />
+          <Script src="/iconfont.js" strategy="lazyOnload" />
         </div>
 
         <SiteScrollTop />

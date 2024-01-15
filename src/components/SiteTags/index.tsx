@@ -33,7 +33,7 @@ export default function SiteTags() {
         return (
           <Link
             key={index}
-            href={`/tags/${tag}`}
+            href={`/archives/tags/${tag}`}
             className={`flex-1 basis-20 shrink-0 px-2 py-1 text-center ${color} whitespace-pre hover:bg-slate-100 dark:hover:bg-slate-600 rounded`}
           >
             {tag}({tagsAndCounts[tag]})
