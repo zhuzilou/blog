@@ -13,7 +13,7 @@ export default function PostCard(post: Post) {
         </time>
         <div className="flex">
           {tags.map(tag => (
-            <Link key={tag} href={`/tags/${tag}`}>
+            <Link key={tag} href={`/archives/tags/${tag}`}>
               <span className="text-xs font-medium mx-2 text-secondary pointer-events-auto">#{tag}</span>
             </Link>
           ))}
