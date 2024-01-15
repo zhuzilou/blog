@@ -8,19 +8,13 @@ import Link from 'next/link'
 import { getYear } from '@/lib/getYear'
 import Icon from '@/components/SiteIcon'
 
-const allPosts = Array.from({ length: 100 }, (_, index) => ({
-  title: `前端开发：实战${index + 1}`,
-  year: getYear() - Math.floor(index / 50),
-  url: '/posts/adsaddas',
-}))
-
-// const allPosts = _allPosts
-//   .map(item => ({
-//     title: item.title,
-//     year: getYear(item.date),
-//     url: item.url,
-//   }))
-//   .sort((a, b) => b.year - a.year)
+const allPosts = _allPosts
+  .map(item => ({
+    title: item.title,
+    year: getYear(item.date),
+    url: item.url,
+  }))
+  .sort((a, b) => b.year - a.year)
 
 const allPostsGroupByYear = groupBy(allPosts, 'year')
 
@@ -28,14 +22,14 @@ const years = Array.from(new Set(allPosts.map(item => item.year))).sort((a, b) =
 
 function SiteTimeLine({ currentYear }: { currentYear: number }) {
   return (
-    <div className="w-1/4 pr-8 flex flex-col min-h-full">
+    <div className="w-1/4 pr-4 flex flex-col min-h-full">
       <h3 className="text-2xl font-bold">时间线</h3>
       <ul className="flex-1 mt-6 sticky top-28 space-y-4 overflow-auto">
         {years.map(year => {
-          const className = year === currentYear ? `text-xl text-primary` : `dark:text-gray-300`
+          const className = year === currentYear ? `text-secondary font-bold` : `dark:text-gray-300`
 
           return (
-            <li key={year} className={className}>
+            <li key={year} className={`${className} transition-all`}>
               {year}
             </li>
           )
@@ -66,27 +60,33 @@ function PostsList({ setCurrentYear }: { setCurrentYear: Function }) {
   )
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll)
+    const postsScrollList = document.querySelector('#posts-scroll-list') as Element
+
+    postsScrollList.addEventListener('scroll', handleScroll)
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      postsScrollList.removeEventListener('scroll', handleScroll)
     }
   }, []) // Add an empty dependency array to ensure the effect runs only once
 
   return (
-    <div className="w-3/4 overflow-auto">
+    <div id="posts-scroll-list" className="w-3/4 overflow-auto">
       <div className="space-y-6">
         {Object.keys(allPostsGroupByYear)
           .sort((a, b) => +b - +a)
           .map(year => (
             <div className="post-list" key={year} data-year={year}>
-              <h3 className="flex items-center text-xl mb-4">
+              <h3 className="flex items-center text-xl mb-4 pl-2">
                 <Icon name="calendar" className="w-6 h-6"></Icon>
-                <span className="ml-2 text-primary">{year}</span>
+                <span className="ml-2 text-secondary font-bold">{year}</span>
               </h3>
               {allPostsGroupByYear[year].map((item, index) => (
-                <div key={index} className="mt-2">
-                  <Link prefetch key={index} href={`/posts/${item.url}`}>
-                    <h2 className="font-bold">{item.title}</h2>
+                <div key={index} className='overflow-hidden'>
+                  <Link prefetch href={`/posts/${item.url}`}>
+                    <h2
+                      className={`inline-block max-w-full py-2 px-2 font-bold truncate hover:bg-secondary hover:text-secondary-content rounded-md`}
+                    >
+                      {item.title}
+                    </h2>
                   </Link>
                 </div>
               ))}
