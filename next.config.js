@@ -13,6 +13,16 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // Basic redirect
+      {
+        source: '/archives',
+        destination: '/archives/posts',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 module.exports = withContentlayer(nextConfig)
