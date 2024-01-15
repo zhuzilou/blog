@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: '博客,IT,技术,生活,日常分享,教程,前端,JavaScript',
 }
 
-const SiteSearch = dynamic(() => import('@/components/SiteSearch'), { ssr: false })
+const SiteSearch = dynamic(() => import('@/components/SiteSearch'), { ssr: true })
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

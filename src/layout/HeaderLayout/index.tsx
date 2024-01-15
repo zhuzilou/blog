@@ -6,13 +6,14 @@ import Link from 'next/link'
 
 const headerNavLinks = [
   { href: '/', title: '首页' },
+  // { href: '/archives', title: '归档' },
   { href: '/tags', title: '标签' },
   { href: '/about', title: '关于' },
 ]
 
-const ToggleTheme = dynamic(() => import('./ToggleTheme'), { ssr: false })
-const ToggleMenuShow = dynamic(() => import('./ToggleMenuShow'), { ssr: false })
-const ToggleSearchShow = dynamic(() => import('./ToggleSearchShow'), { ssr: false })
+const ToggleTheme = dynamic(() => import('./ToggleTheme'), { ssr: true })
+const ToggleMenuShow = dynamic(() => import('./ToggleMenuShow'), { ssr: true })
+const ToggleSearchShow = dynamic(() => import('./ToggleSearchShow'), { ssr: true })
 
 function HeaderLeft() {
   return (
