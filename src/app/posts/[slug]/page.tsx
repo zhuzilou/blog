@@ -23,7 +23,6 @@ export async function generateStaticParams() {
   }))
 }
 
-export type IButtonTypes = 'btn-primary' | 'btn-secondary' | 'btn-accent'
 
 const ArticleTags = ({ tagStr }: { tagStr: string }) => {
   return (

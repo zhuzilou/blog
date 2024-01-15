@@ -12,6 +12,7 @@
     "@giscus/react": "^2.4.0",
     "contentlayer": "^0.3.4",
     "dayjs": "^1.11.10",
+    "lodash": "^4.17.21",
     "next": "14.0.4",
     "next-contentlayer": "^0.3.4",
     "react": "^18",
@@ -21,6 +22,7 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.202",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
