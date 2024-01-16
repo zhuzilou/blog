@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { defineDocumentType, makeSource } from 'contentlayer/source-files'
 import remarkGfm from 'remark-gfm'
 import rehypePrettyCode, { type Options as PrettyCodeOptions } from 'rehype-pretty-code'
+import { calculateReadingTimeWithImages } from './src/lib/getReadTime'
 
 export const Post = defineDocumentType(() => ({
   name: 'Post',
@@ -18,11 +19,11 @@ export const Post = defineDocumentType(() => ({
   computedFields: {
     url: {
       type: 'string',
-      resolve: post => {
-        const hashPath = generateShortLink(post._raw.flattenedPath)
-
-        return hashPath
-      },
+      resolve: post => generateShortLink(post._raw.flattenedPath),
+    },
+    readTime: {
+      type: 'number',
+      resolve: post => calculateReadingTimeWithImages(post.body.raw),
     },
   },
 }))
