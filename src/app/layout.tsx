@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body>
-        <div className="relative pt-[5.5rem] flex flex-col min-h-screen text-base-content bg-base-200 transition-colors">
+        <div className="relative pt-[5.5rem] flex flex-col min-h-screen text-base-content bg-base-200 dark:bg-[#2a303c] transition-colors">
           <SiteHeader />
           <main className="flex-grow px-4 bg-base-100 sm:bg-inherit">{children}</main>
 
