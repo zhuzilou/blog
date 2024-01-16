@@ -42,16 +42,23 @@ export default function SiteSearch() {
         </form>
 
         <div className="mt-3 mr-8 h-[300px] overflow-y-auto">
-          {filteredPosts.map(post => (
-            <div
-              className="mt-1 px-2 flex items-center h-[40px] cursor-default rounded hover:bg-orange-200"
-              key={post._id}
-              onClick={() => handleNavClick(post)}
-            >
-              <Icon name="folder" className="w-4 h-4"></Icon>
-              <h2 className="ml-2">{post.title}</h2>
-            </div>
-          ))}
+          {filteredPosts.map(post => {
+            const highlightedTitle = post.title.replace(
+              new RegExp(keyword, 'gi'),
+              `<span class="text-orange-500">${keyword}</span>`
+            )
+
+            return (
+              <div
+                className="mt-1 px-2 flex items-center h-[40px] dark:text-base-content cursor-default rounded hover:bg-orange-200 dark:hover:bg-warning hover:dark:text-warning-content group"
+                key={post._id}
+                onClick={() => handleNavClick(post)}
+              >
+                <Icon name="folder" className="w-4 h-4"></Icon>
+                <h2 className="ml-2" dangerouslySetInnerHTML={{ __html: highlightedTitle }} />
+              </div>
+            )
+          })}
         </div>
       </div>
     </dialog>
