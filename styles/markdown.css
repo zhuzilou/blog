@@ -19,11 +19,11 @@ pre > code > .line.highlighted {
   @apply bg-slate-700;
 }
 
-pre > code[data-line-numbers] {
+pre > code {
   counter-reset: line;
 }
 
-pre > code[data-line-numbers] > .line::before {
+pre > code > .line::before {
   counter-increment: line;
   content: counter(line);
   @apply mr-4 inline-block w-4 text-right text-slate-500;
