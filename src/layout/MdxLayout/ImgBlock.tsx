@@ -3,9 +3,7 @@
 import Image from 'next/image'
 
 const imageLoader = ({ src, width, quality }: any) => {
-  const url = new URL(`${src}`)
-
-  console.log('url.href', url.href)
+  const url = new URL(`${src}?imageMogr2/thumbnail/${width}x/format/webp`)
 
   return url.href
 }
