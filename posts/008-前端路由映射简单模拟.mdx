@@ -1,0 +1,97 @@
+---
+title: 前端路由映射简单模拟
+date: 2023-01-13
+tag: js,代码片段
+description: 在原生js中，监听hashchange事件，根据location.hash，模拟哈希模式路由；根据点击事件，触发自定义事件，根据location.pathname，模拟h5 history模式路由。
+---
+
+## Hash
+
+hash使用了锚点，监听hashchange事件，缺点是url里面有一个#
+
+```html
+<body>
+  <nav>
+    <a href="#/home">home</a>
+    <a href="#/about">about</a>
+    <a href="#/profile">profile</a>
+    <a href="#/noMatch">404</a>
+  </nav>
+  <main>
+    <h1 class="content">home content</h1>
+  </main>
+  <script>
+    const content = document.querySelector('.content')
+
+    window.addEventListener('hashchange', () => {
+      switch (location.hash) {
+        case '#/home':
+          content.innerHTML = 'home content'
+          break
+        case '#/about':
+          content.innerHTML = 'about content'
+          break
+        case '#/profile':
+          content.innerHTML = 'profile content'
+          break
+        default:
+          content.innerHTML = '404'
+          break
+      }
+    })
+  </script>
+</body>
+```
+
+## history
+
+history模式，使用h5的history api，缺点是一旦刷新就会找不到对应的html文件，需要特殊处理（在nginx中进行配置）
+
+```html
+<body>
+  <nav>
+    <a href="home">home</a>
+    <a href="about">about</a>
+    <a href="profile">profile</a>
+    <a href="noMatch">404</a>
+  </nav>
+  <main>
+    <h1 class="content">home content</h1>
+  </main>
+  <script>
+    const content = document.querySelector('.content')
+
+    const aTags = document.querySelectorAll('a')
+
+    aTags.forEach(a =>
+      a.addEventListener('click', e => {
+        e.preventDefault()
+
+        const href = a.getAttribute('href')
+
+        history.pushState({}, '', href)
+
+        historyChange()
+      })
+    )
+
+    function historyChange() {
+      console.log(location.pathname)
+      switch (location.pathname) {
+        case '/home':
+          content.innerHTML = 'home content'
+          break
+        case '/about':
+          content.innerHTML = 'about content'
+          break
+        case '/profile':
+          content.innerHTML = 'profile content'
+          break
+        default:
+          content.innerHTML = '404'
+          break
+      }
+    }
+  </script>
+</body>
+```

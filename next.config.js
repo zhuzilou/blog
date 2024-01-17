@@ -8,7 +8,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 's5nvjgtjr.hd-bkt.clouddn.com',
+        hostname: 'qiniu.djdg626.com',
         port: '',
       },
     ],
