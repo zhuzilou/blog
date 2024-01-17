@@ -1,0 +1,108 @@
+---
+title: 前端扁平数据转Tree
+date: 2024-01-17
+tag: js,代码片段,算法
+description: 一次循环，将有id、pid的json数据转换为嵌套的对象数组，根元素可能有多个对象
+---
+
+## 代码
+
+```js showLineNumbers {21,29,30,31,34}
+let arr = [
+  { id: 4, name: '部门4', pid: 3 },
+  { id: 2, name: '部门2', pid: 1 },
+  { id: 1, name: '部门1', pid: 0 },
+  { id: 3, name: '部门3', pid: 1 },
+  { id: 5, name: '部门5', pid: 4 },
+  { id: 6, name: '部门6', pid: 0 },
+]
+
+function arrayToTree(items, rootId = 0) {
+  const result = [] // 存放结果集
+  const itemMap = {}
+
+  for (const item of items) {
+    const id = item.id
+    const pid = item.pid
+
+    itemMap[id] = {
+      ...item,
+      // children: []
+      children: !itemMap[id] ? [] : itemMap[id].children,
+    }
+
+    const treeItem = itemMap[id]
+
+    if (pid === rootId) {
+      result.push(treeItem)
+    } else {
+      if (!itemMap[pid]) {
+        itemMap[pid] = {
+          children: [],
+        }
+      }
+      itemMap[pid].children.push(treeItem)
+    }
+  }
+  return result
+}
+
+console.log(JSON.stringify(arrayToTree(arr)))
+```
+
+## 思路
+
+思路是使用 Map 结构，存储对 Tree 元素的引用。
+Map 结构使用 id 作为 key，因此每次循环时可以根据 pid，直接插入到对应的 Map id 对应的 children 中去。
+但是如果是遍历的无序 JSON，此时 Map 结构 pid 对应的 id 可能还不存在，因此 id 对应的 children 会报错。
+即第 X 行，!itemMap[pid]还未被创建，就给他创建一个有 children 的空对象，再把自身放到 children 中去。
+所以上方遍历时，itemMap[id]此时可能已经被自己的子对象创建过含有 children 的数组了，所以第 y 行，不能简单赋值空数组，而是要判断自身是否存在，存在就用当前的 children，这样可以保持 children 的引用。
+最后，如果 pid=形参 rootId，就作为根元素之一。
+
+只使用一次循环，因此时间复杂度是`O(n)`
+
+## 结果
+
+```json
+[
+  {
+    "id": 1,
+    "name": "部门1",
+    "pid": 0,
+    "children": [
+      {
+        "id": 2,
+        "name": "部门2",
+        "pid": 1,
+        "children": []
+      },
+      {
+        "id": 3,
+        "name": "部门3",
+        "pid": 1,
+        "children": [
+          {
+            "id": 4,
+            "name": "部门4",
+            "pid": 3,
+            "children": [
+              {
+                "id": 5,
+                "name": "部门5",
+                "pid": 4,
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "部门6",
+    "pid": 0,
+    "children": []
+  }
+]
+```
