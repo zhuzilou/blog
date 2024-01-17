@@ -7,7 +7,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
+        protocol: 'https',
         hostname: 'qiniu.djdg626.com',
         port: '',
       },
