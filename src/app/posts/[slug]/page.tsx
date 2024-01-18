@@ -8,6 +8,7 @@ import Link from 'next/link'
 import dayjs from 'dayjs'
 import mdxComponents from '@/layout/MdxLayout'
 import SiteComments from '@/components/SiteComments'
+import SiteGallery from '@/components/SiteGallery'
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = allPosts.find(post => post.url === params.slug)
@@ -22,7 +23,6 @@ export async function generateStaticParams() {
     slug: post.url,
   }))
 }
-
 
 const ArticleTags = ({ tagStr }: { tagStr: string }) => {
   return (
@@ -62,7 +62,9 @@ export default async function PostLayout({ params }: { params: { slug: string } 
           {post.tag && <ArticleTags tagStr={post.tag} />}
         </div>
 
-        <MDXContent components={mdxComponents} />
+        <SiteGallery>
+          <MDXContent components={mdxComponents} />
+        </SiteGallery>
       </article>
 
       <SiteComments slug={params.slug} />
