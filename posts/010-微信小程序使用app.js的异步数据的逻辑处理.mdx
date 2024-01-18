@@ -1,6 +1,6 @@
 ---
 title: 微信小程序使用app.js的异步数据的逻辑处理
-date: 2024-01-18
+date: 2023-09-15
 tag: 微信小程序
 description: 一种通过回调函数获取app.js中异步数据的处理方法，如果获取时数据已经存在，就直接返回。如果还不存在，就等待并执行异步回调。避免了额外的代码和性能开销。
 ---
@@ -46,7 +46,7 @@ App({
 
 在需要使用 userInfo 的页面，先拿到 app 实例，再在 app 实例上添加一个方法，入参是回调函数
 
-```js
+```js showLineNumbers {8}
 // index.js
 
 const app = getApp()
@@ -64,7 +64,7 @@ Component({
 
 app.js 异步请求成功后调用外部添加的这个函数，传入请求到的数据即可
 
-```js
+```js showLineNumbers {18}
 // app.js
 App({
   globalData: {
@@ -95,7 +95,7 @@ App({
 
 ## 进一步封装
 
-在 app.js 内添加函数 getUserInfoSync，如果 userInfo 已存在就直接返回，不存在就等待并执行异步回调
+在 app.js 内添加函数 getUserInfoSync，在getUserInfoSync添加app实例的回调函数，如果 userInfo 已存在就直接返回，不存在就等待并执行异步回调
 
 ```js
 // app.js

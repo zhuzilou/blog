@@ -1,0 +1,51 @@
+---
+title: flex布局设置justify-content换行的问题
+date: 2022-01-25
+tag: css
+description: 在flex布局下，justify-content设置为center或space-between时，如果元素需要换行，并且换行后没有占满一行的宽度，换行的子元素将形成与预期不符的空白。解决方式是给设置flex的父元素插入高度为0的空元素。
+---
+
+## 解决方式
+
+在item后增加特定数量的占位盒子，设置相同的width，但不设置高度（或设置为0），即可解决
+
+```html showLineNumbers {7,8}
+<div class="list">
+  <div class="item">item1</div>
+  <div class="item">item2</div>
+  <div class="item">item3</div>
+  <div class="item">item4</div>
+
+  <div class="empty"></div>
+  <div class="empty"></div>
+</div>
+```
+
+```css showLineNumbers {21}
+.list {
+  display: flex;
+  justify-content:center;
+  flex-wrap: wrap;
+  width: 300px;
+  border: 1px solid red;
+}
+
+.item {
+  box-sizing: border-box;
+  width: 100px;
+  height: 100px;
+  text-align: center;
+  line-height: 100px;
+  border: 1px solid green;
+}
+
+.empty {
+  box-sizing: border-box;
+  width: 100px;
+  height: 0;
+}
+```
+
+![flex使用空元素实例](https:/qiniu.djdg626.com/202401182330388.png)
+
+代码片段：https://codepen.io/zhangwh754-the-selector/pen/bGZWVKa
