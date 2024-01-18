@@ -1,0 +1,132 @@
+---
+title: 微信小程序使用app.js的异步数据的逻辑处理
+date: 2024-01-18
+tag: 微信小程序
+description: 一种通过回调函数获取app.js中异步数据的处理方法，如果获取时数据已经存在，就直接返回。如果还不存在，就等待并执行异步回调。避免了额外的代码和性能开销。
+---
+
+## 情景
+
+首次进入，在 app.js 的 onLaunch 获取数据（如 userInfo），希望在某个页面使用这个数据，但获取数据的过程是异步的，因此获取时可能还没有得到异步返回结果。
+
+## 问题代码
+
+```js
+// app.js
+App({
+  globalData: {
+    userInfo: null,
+  },
+
+  onLaunch() {
+    this.getUserInfo()
+  },
+
+  getUserInfo() {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const userInfo = { name: '小明', age: 18 }
+
+        this.globalData.userInfo = userInfo
+
+        resolve()
+      }, 2000)
+    })
+  },
+})
+```
+
+## 问题
+
+在我微信小程序的入口 js 中想要获取这个 userInfo，可以获取到 app.js 的 app 实例，但是获取到时 getUserInfo 可能还没请求结束。
+
+也能把请求放到 index.js 中去，但是如果有多个入口页面，就需要在多个页面请求这个 userInfo。
+
+## 解决方式
+
+在需要使用 userInfo 的页面，先拿到 app 实例，再在 app 实例上添加一个方法，入参是回调函数
+
+```js
+// index.js
+
+const app = getApp()
+
+Component({
+  lifetimes: {
+    created() {
+      app.isUserInfoReadyCallback = userInfo => {
+        console.log(userInfo)
+      }
+    },
+  },
+})
+```
+
+app.js 异步请求成功后调用外部添加的这个函数，传入请求到的数据即可
+
+```js
+// app.js
+App({
+  globalData: {
+    userInfo: null,
+  },
+
+  onLaunch() {
+    this.getUserInfo()
+  },
+
+  getUserInfo() {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const userInfo = { name: '小明', age: 18 }
+
+        this.globalData.userInfo = userInfo
+
+        if (this.isUserInfoReadyCallback && typeof this.isUserInfoReadyCallback === 'function') {
+          this.isUserInfoReadyCallback(userInfo)
+        }
+
+        resolve()
+      }, 2000)
+    })
+  },
+})
+```
+
+## 进一步封装
+
+在 app.js 内添加函数 getUserInfoSync，如果 userInfo 已存在就直接返回，不存在就等待并执行异步回调
+
+```js
+// app.js
+getUserInfoSync() {
+  return new Promise(resolve => {
+    let userInfo = this.globalData.userInfo
+    if (!userInfo) {
+      this.isUserInfoReadyCallback = userInfo => {
+        resolve(userInfo)
+      }
+    } else {
+      resolve(userInfo)
+    }
+  })
+}
+```
+
+## 使用
+
+任意需要用到 userInfo（数据）的页面，如果 userInfo 已存入 globalData，会直接返回，没存入会等待异步回调
+
+```js
+lifetimes: {
+  async created() {
+    const userInfo = await app.getUserInfoSync()
+
+    console.log(userInfo)
+  },
+}
+```
+
+<Alert msg="代码片段" />
+
+https://developers.weixin.qq.com/s/3wfILfmh71LH
