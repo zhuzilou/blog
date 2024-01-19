@@ -1,0 +1,194 @@
+---
+title: 天地图渲染vue自定义组件
+date: 2023-12-10
+tag: 地图,vue
+description: 本文包含了使用天地图，如何渲染自定义vue组件，使用vue.extend api实现，并且可以使用事件绑定、属性传递等vue api。
+---
+
+## 需求
+
+天地图官方提供的是渲染 html 的方案，此方案维护困难，拓展困难，并且脱离 vue，因此更改使用 Vue.extend api 渲染 vue 组件，可以满足基本的开发需求
+官方 demo：http://lbs.tianditu.gov.cn/api/js4.0/examples.html
+
+## 天地图地图基本渲染
+
+渲染了最基本的地图，中心位置有一个自定义 marker，绑定了点击事件。
+
+```js
+import load from 'load-script'
+
+/**
+ * @description: 加载地图
+ * @param {function} callback
+ */
+export const loadMap = (callback = () => {}) => {
+  const key = process.env.VUE_APP_MAP_KEY
+
+  load(`http://api.tianditu.gov.cn/api?v=4.0&tk=${key}`, function (err, script) {
+    if (err) {
+      console.log('地图加载失败', err)
+    } else {
+      console.log(script.src)
+      callback()
+    }
+  })
+}
+
+/**
+ * @description: 地图初始化
+ * @param {string} dom map元素id
+ * @param {number[]} center 经纬度
+ * @param {number} zoom 缩放程度
+ */
+export const initMap = (dom = 'map', center = [121.489, 31.233], zoom = 15) => {
+  let map = null
+
+  map = new T.Map(dom)
+
+  map.centerAndZoom(new T.LngLat(...center), zoom)
+
+  return map
+}
+
+/**
+ * @description: 设置地图显示范围
+ * @param {*} map 地图实例
+ * @param {number[]} level
+ */
+export const setMapZoomLevels = (map, level) => {
+  map.setMinZoom(level[0])
+  map.setMaxZoom(level[1])
+}
+```
+
+```vue
+<template>
+  <div class="wrapper">
+    <div id="map"></div>
+  </div>
+</template>
+
+<script>
+import { loadMap, initMap, setMapZoomLevels } from '@/utils'
+let map = null
+export default {
+  data() {
+    return { lng: 121.489, lat: 31.233 }
+  },
+
+  mounted() {
+    loadMap(() => {
+      map = initMap()
+      map.disableDoubleClickZoom()
+      setMapZoomLevels(map, [11, 16])
+
+      this.setMarker()
+    })
+  },
+
+  methods: {
+    setMarker() {
+      const center = new T.LngLat(this.lng, this.lat)
+
+      const marker = new T.Marker(center)
+
+      map.addOverLay(marker)
+
+      marker.addEventListener('click', () => {
+        console.log('点击了marker')
+      })
+    },
+  },
+}
+</script>
+
+<style scoped lang="scss">
+#map {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+}
+</style>
+```
+
+![天地图地图](https://qiniu.djdg626.com/202401191950044.png)
+
+## 通过事件打开自定义 vue 弹窗组件
+
+现在希望点击中心的 marker 时，可以弹出一个跟随 marker 的弹窗
+
+因此需要使用天地图的信息弹窗 api，但是默认的信息弹窗 api 传入的是字符串形式的 html
+
+```js
+var infoWin1 = new T.InfoWindow()
+infoWin1.setContent('<h2>信息弹窗</h2>')
+```
+
+思路是 setContent 渲染一个空元素，然后再用 Vue.extend 把组件绑定到这个空元素上。
+
+```js
+import CustomWindow from "@/components/CustomWindow";
+const ExtendCustomWindow = Vue.extend(CustomWindow);
+```
+
+```js showLineNumbers {8,12,21,33}
+setMarker() {
+  const center = new T.LngLat(this.lng, this.lat);
+
+  const marker = new T.Marker(center);
+
+  map.addOverLay(marker);
+
+  const infoWin = this.initInfoWindow();
+
+  marker.addEventListener("click", () => {
+    marker.openInfoWindow(infoWin);
+    this.openInfoWindow();
+  });
+},
+
+initInfoWindow() {
+  const infoWin = new T.InfoWindow();
+
+  infoWin.setLngLat(new T.LngLat(this.lng, this.lat));
+
+  let sContent = `<div id="map_position_control" style="width: 200px;" />`;
+
+  infoWin.setContent(sContent);
+
+  return infoWin;
+},
+
+openInfoWindow() {
+  if (this.newInstance) {
+    this.newInstance.$destroy();
+  }
+
+  this.newInstance = new ExtendCustomWindow({
+    el: "#map_position_control",
+    propsData: {
+      name: this.username, // 传递的props
+    },
+  });
+
+  // this.newInstance.$mount("#map_position_control");
+
+  this.newInstance.$on("update:name", (data) => {
+    this.username = data;
+  });
+},
+```
+
+![组件数据双向绑定](https://qiniu.djdg626.com/202401192019041.png)
+
+## 总结
+
+本文即Vue.extend的使用。当需要给不方便在模板中插入的位置放vue组件时，可以使用Vue.extend api。
+
+### 如何使用Vue.extend
+
+1. 引入对应vue组件
+2. Vue.extend()传入这个组件，返回组件的构造函数
+3. 实例化构造函数，可以返回一个组件实例，可以指定需要绑定的dom元素
+4. 实例化时可以传递props
+5. 实例上有$on方法，可以监听组件发送的事件
