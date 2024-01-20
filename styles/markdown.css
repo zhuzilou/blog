@@ -2,6 +2,10 @@ pre {
   @apply !my-0 !p-0;
 }
 
+figure + figure {
+  @apply !mt-6;
+}
+
 pre > code {
   @apply !overflow-x-auto !ml-2 !px-1 !py-2 !pb-3 !bg-inherit !rounded-none;
 }

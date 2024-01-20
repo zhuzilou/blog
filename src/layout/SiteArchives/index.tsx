@@ -10,19 +10,24 @@ import { allPosts as _allPosts } from 'contentlayer/generated'
 
 function SiteTimeLine({ currentYear, years }: { currentYear: number; years: number[] }) {
   return (
-    <div className="w-1/4 pr-4 flex flex-col min-h-full">
-      <h3 className="text-2xl font-bold">时间线</h3>
-      <ul className="flex-1 mt-6 sticky top-28 space-y-4 overflow-auto">
-        {years.map(year => {
-          const className = year === currentYear ? `text-secondary font-bold` : `dark:text-gray-300`
+    <div className="relative w-1/4 pr-4 flex flex-col">
+      <div className="sticky top-32">
+        <h3 className="flex items-center text-2xl font-bold">
+          <Icon name='timeline' className='w-6 h-6'></Icon>
+          <span className='ml-2'>时间线</span>
+        </h3>
+        <ul className="flex-1 mt-6 sticky top-28 space-y-4 overflow-auto">
+          {years.map(year => {
+            const className = year === currentYear ? `text-secondary font-bold` : `dark:text-gray-300`
 
-          return (
-            <li key={year} className={`${className} transition-all`}>
-              {year}
-            </li>
-          )
-        })}
-      </ul>
+            return (
+              <li key={year} className={`${className} transition-all`}>
+                {year}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
     </div>
   )
 }
@@ -106,7 +111,7 @@ export default function SiteArchives({ tag }: { tag?: string }) {
   const [currentYear, setCurrentYear] = useState(years[0])
 
   return (
-    <div className="flex mt-8 max-h-[calc(100vh-20.2rem)]">
+    <div className="relative flex mt-8">
       <SiteTimeLine currentYear={currentYear} years={years} />
 
       <PostsList setCurrentYear={setCurrentYear} allPostsGroupByYear={allPostsGroupByYear} />
