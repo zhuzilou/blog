@@ -1,0 +1,132 @@
+---
+title: Vue3响应式基础
+date: 2024-01-20
+tag: vue
+description: 本文主要包含vue3中新增的ref和reactive函数的使用和特性。
+---
+
+## 响应式基础
+
+可以使用ref()函数声明一个响应式状态。
+
+可以使用reactive()函数使一个对象具有响应性，使用Proxy拦截对响应式对象所有属性的访问和修改。当ref函数包装一个对象时，内部会调用reactive函数
+
+### 为什么要使用ref
+
+js中不能检测基本类型变量的访问和修改，但是可以拦截对象的get和set
+
+因此可以把ref视作一个把变量包装为同名对象的函数，.value是原始值，可以追踪.value的get set。
+
+并且，当一个组件初次渲染时，Vue会自动追踪渲染时使用的每一个ref，当某个ref被修改时，Vue会重新渲染追踪他的组件。
+
+### reactive proxy
+
+reactive会返回一个Proxy对象，和原始对象并不相等，更改原始对象不会影响Vue Proxy
+
+- 修改origin obj，视图不更新
+- 修改代理对象，视图更新，原始对象更新
+
+<Alert type="info" msg="改一次origin，再改proxy，第一次修改也会被应用，不会丢失" />
+
+```vue
+<script setup lang="ts">
+import { reactive } from 'vue'
+
+const obj = {
+  a: 1
+}
+
+const _obj = reactive(obj)
+</script>
+
+<template>
+  <div class="m-2 w-32">origin：{{ obj.a }}</div>
+  <div class="m-2 w-32">proxy: {{ _obj.a }}</div>
+
+  <button className="btn btn-warning" @click="obj.a += 1">add origin</button>
+  <button className="btn btn-warning" @click="_obj.a += 1">add proxy</button>
+
+  <button class="btn btn-success" @click="console.log(obj)">click</button>
+</template>
+```
+
+### reactive的局限性
+
+1. 不能用于基本类型
+2. 直接替换reactive的返回值，响应式会丢失
+3. 解构的值不具有响应性
+
+下例中，使用reactive，17行视图不更新，响应丢失
+使用ref，17行视图更新，响应保持，因为obj自身的指向没有被修改，而是内部的value被修改了，所以可以被vue追踪到，而reactive则不行。
+
+```vue showLineNumbers {8,9,17}
+<script lang="ts" setup>
+import { reactive, ref } from 'vue'
+
+// let obj = reactive({ count: 1 })
+let obj = ref({ count: 1 })
+
+const btnClick = () => {
+  // obj = reactive({ count: 2 })
+  obj.value = { count: 2 }
+
+  console.log(obj)
+}
+</script>
+
+<template>
+  <div class="wrapper">
+    <h2>{{ obj.count }}</h2>
+
+    <button className="btn btn-warning" @click="btnClick">btnClick</button>
+  </div>
+</template>
+```
+
+### ref、reactive其他
+
+ref
+
+1. 只有顶层的ref，会被模板自动解包
+2. 嵌套的ref可以使用解构，解构为顶层ref
+
+reactive
+
+1. reactive对象中可以放ref作为属性，不需要手动添加.value
+2. 给reactive对象的某个ref属性赋值新的ref，旧ref会被新ref替换
+3. reactive数组不包括上述两个特性
+
+### dom更新和数据更新
+
+响应式数据更新是同步（立即发生）的
+
+但是视图的更新不是同步的，而是一段时间发生一次
+
+Vue把这段时间称作`next tick`更新周期，一段周期只会发生一次视图更新
+
+如果希望等待视图更新，可以使用nextTick函数
+
+```js
+await nextTick()
+```
+
+### shallowRef
+
+默认情况下ref会调用reactive处理引用类型，当修改深层属性时会被追踪
+
+如果不希望递归追踪内部属性，可以使用shallowRef
+
+shallowRef包裹的引用类型，只有当.value自身发生改变才会被追踪。
+
+可以优化性能
+
+```js
+const state = shallowRef({ count: 1 })
+
+// 不会触发更改
+state.value.count = 2
+
+// 会触发更改
+state.value = { count: 2 }
+```
+
