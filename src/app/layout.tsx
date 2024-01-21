@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import { Metadata } from 'next'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
 import './globals.css'
@@ -9,6 +9,11 @@ import SiteScrollTop from '@/components/SiteScrollTop'
 export const metadata: Metadata = {
   title: 'Blog of djdg626',
   description: '博客,IT,技术,生活,日常分享,教程,前端,JavaScript',
+  verification: {
+    other: {
+      'baidu-site-verification': 'codeva-oWPv6vmEax',
+    },
+  },
 }
 
 const SiteSearch = dynamic(() => import('@/components/SiteSearch'), { ssr: true })
