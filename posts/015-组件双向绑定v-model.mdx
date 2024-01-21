@@ -1,0 +1,98 @@
+---
+title: Vue组件双向绑定v-model
+date: 2024-01-21
+tag: vue
+description: 本文主要包含vue3中新增的defineModel()宏命令的使用
+---
+
+## 组件双向绑定v-model
+
+自Vue3.4后，推荐的组件双向绑定方式是使用defineModel()宏命令（宏命令无需声明）
+
+defineModel()可以返回一个ref包装值，子组件v-model这个值，update时会自动emit给父组件进行修改。
+
+
+
+### 旧写法
+
+```vue
+// parent
+<script setup>
+import Child from './Child.vue'
+import { ref } from 'vue'
+
+const name = ref('zwh')
+</script>
+
+<template>
+  <h1>name:{{ name }}</h1>
+  <Child v-model:name="name" />
+</template>
+```
+
+```vue
+// Child
+<script setup lang="ts">
+const emit = defineEmits<{
+  'update:name': [name: string]
+}>()
+
+const props = defineProps<{ name: string }>()
+</script>
+
+<template>
+  <span>My input Name</span> <input :value="name" @input="$emit('update:name', $event.target.value)">
+</template>
+```
+
+
+
+### 新写法
+
+```vue
+// parent
+<script setup>
+import Child from './Child.vue'
+import { ref } from 'vue'
+
+const name = ref('zwh')
+</script>
+
+<template>
+  <h1>name:{{ name }}</h1>
+  <Child v-model:name="name" />
+</template>
+```
+
+```vue
+// child
+<script setup>
+const name = defineModel('name')
+</script>
+
+<template>
+  <span>My input Name</span> <input v-model="name">
+</template>
+```
+
+### 修饰符
+
+此外，defineModel还可以处理父组件v-model添加的自定义修饰符，只需要在defineModel的第二个参数添加一个set函数即可
+
+```vue
+<script setup>
+const [model, modifiers] = defineModel({
+  set(value) {
+    if (modifiers.capitalize) {
+      return value.charAt(0).toUpperCase() + value.slice(1)
+    }
+    return value
+  }
+})
+</script>
+
+<template>
+  <input type="text" v-model="model" />
+</template>
+```
+
