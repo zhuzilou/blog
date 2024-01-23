@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { groupBy, throttle } from 'lodash'
 import Link from 'next/link'
 import { getYear } from '@/lib/getYear'
@@ -12,9 +12,9 @@ function SiteTimeLine({ currentYear, years }: { currentYear: number; years: numb
   return (
     <div className="relative w-1/4 pr-4 flex flex-col">
       <div className="sticky top-32">
-        <h3 className="flex items-center text-2xl font-bold">
-          <Icon name='timeline' className='w-6 h-6'></Icon>
-          <span className='ml-2'>时间线</span>
+        <h3 className="flex items-center text-xl sm:text-2xl font-bold">
+          <Icon name="timeline" className="hidden sm:block w-6 h-6"></Icon>
+          <span className="sm:ml-2">时间线</span>
         </h3>
         <ul className="flex-1 mt-6 sticky top-28 space-y-4 overflow-auto">
           {years.map(year => {
@@ -35,34 +35,32 @@ function SiteTimeLine({ currentYear, years }: { currentYear: number; years: numb
 function PostsList({ setCurrentYear, allPostsGroupByYear }: { setCurrentYear: Function; allPostsGroupByYear: any }) {
   const handleScroll = useCallback(
     throttle(() => {
-      const postElements = document.querySelectorAll('.post-list') // Add a class to your post items
-      let currentYear = getYear()
+      const postElements = (postListRef.current as any).querySelectorAll('.post-list') // Add a class to your post items
 
-      postElements.forEach(postElement => {
+      postElements.forEach((postElement: any) => {
         const rect = postElement.getBoundingClientRect()
 
         if (rect.top < 150) {
           // The post is 150px from the top.
-          currentYear = parseInt(postElement.getAttribute('data-year') as string)
+          const currentYear = parseInt(postElement.getAttribute('data-year') as string)
+          setCurrentYear(currentYear)
         }
       })
-
-      setCurrentYear(currentYear)
     }, 300),
     []
   )
 
-  useEffect(() => {
-    const postsScrollList = document.querySelector('#posts-scroll-list') as Element
+  const postListRef = useRef(null)
 
-    postsScrollList.addEventListener('scroll', handleScroll)
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll)
     return () => {
-      postsScrollList.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', handleScroll)
     }
   }, []) // Add an empty dependency array to ensure the effect runs only once
 
   return (
-    <div id="posts-scroll-list" className="w-3/4 overflow-auto">
+    <div ref={postListRef} className="w-3/4 overflow-auto">
       <div className="space-y-6">
         {Object.keys(allPostsGroupByYear)
           .sort((a, b) => +b - +a)
@@ -72,17 +70,19 @@ function PostsList({ setCurrentYear, allPostsGroupByYear }: { setCurrentYear: Fu
                 <Icon name="calendar" className="w-6 h-6"></Icon>
                 <span className="ml-2 text-secondary font-bold">{year}</span>
               </h3>
-              {allPostsGroupByYear[year].map((item: any, index: any) => (
-                <div key={index} className="overflow-hidden">
-                  <Link prefetch href={`/posts/${item.url}`}>
-                    <h2
-                      className={`inline-block max-w-full py-2 px-2 font-bold truncate hover:bg-secondary hover:text-secondary-content rounded-md`}
-                    >
-                      {item.title}
-                    </h2>
-                  </Link>
-                </div>
-              ))}
+              {allPostsGroupByYear[year]
+                .sort((a: any, b: any) => b.date - a.date)
+                .map((item: any, index: any) => (
+                  <div key={index} className="overflow-hidden">
+                    <Link prefetch href={`/posts/${item.url}`}>
+                      <h2
+                        className={`inline-block max-w-full py-2 px-2 font-bold truncate hover:bg-secondary hover:text-secondary-content rounded-md`}
+                      >
+                        {item.title}
+                      </h2>
+                    </Link>
+                  </div>
+                ))}
             </div>
           ))}
       </div>
@@ -101,6 +101,7 @@ export default function SiteArchives({ tag }: { tag?: string }) {
       title: item.title,
       year: getYear(item.date),
       url: item.url,
+      date: new Date(item.date).getTime(),
     }))
     .sort((a, b) => b.year - a.year)
 
