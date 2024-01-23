@@ -6,7 +6,7 @@ export const calculateReadingTimeWithImages = (markdownContent: string) => {
   const imageCount = (markdownContent.match(/!\[(.*?)\]\((.*?)\)/g) || []).length
 
   // Assume an average reading speed (words per minute)
-  const wordsPerMinute = 200
+  const wordsPerMinute = 180
 
   // Assume additional reading time for each image (seconds per image)
   const secondsPerImage = 8
