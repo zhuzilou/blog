@@ -1,0 +1,66 @@
+---
+title: 浏览器部分Bom属性及方法分析
+date: 2024/01/24 11:00:50
+tag: 浏览器,bom
+description: 简单分析浏览器部分我个人不常用的bom属性及bom方法
+---
+
+## 像素比
+
+window.devicePixelRatio 表示物理像素与逻辑像素之间的缩放系数
+
+## 获取当前浏览器窗口的宽度和高度
+
+见红宝书 363 页
+
+```js
+let pageWidth = window.innerWidth,
+  pageHeight = window.innerHeight
+if (typeof pageWidth != 'number') {
+  if (document.compatMode == 'CSS1Compat') {
+    pageWidth = document.documentElement.clientWidth
+    pageHeight = document.documentElement.clientHeight
+  } else {
+    pageWidth = document.body.clientWidth
+    pageHeight = document.body.clientHeight
+  }
+}
+```
+
+## location 对象部分属性
+
+| 属性            | 值                                              | 说明                                                          |
+| --------------- | ----------------------------------------------- | ------------------------------------------------------------- |
+| location.hash   | "#contents"                                     | URL 散列值（井号后跟零或多个字符），如果没有则 为空字符串     |
+| location.href   | "https://www.djdg626.com?q=javascript#contents" | 当前加载页面的完整 URL。location 的 toString() 方法返回这个值 |
+| location.search | "?q=javascript"                                 | URL 的查询字符串。这个字符串以问号开头                        |
+
+其中 location.search 查询字符串，可以使用 URLSearchParams 类构造一个新实例，实例暴露了 has get set delete 方法
+
+```js
+const str = `?q=javascript`
+
+const url = new URLSearchParams(str)
+
+url.get('q') // javascript
+url.set('q', 'react')
+url.get('q') // react
+url.delete('q')
+url.has('q') // false
+```
+
+此外，location的属性，也可以自由修改
+
+## requestAnimationFrame
+
+requestAnimationFrame会让浏览器在`下次重绘前`调用传入的回调函数
+
+1. 回调函数自动接受一个时间戳参数`DOMHighResTimeStamp`
+1. requestAnimationFrame只执行一次，如果希望在浏览器下次重绘时继续更新动画，要在回调中继续执行requestAnimationFrame
+1. requestAnimationFrame返回的值，可以用cancelAnimationFrame取消动画回调函数
+1. requestAnimationFrame在页面处于后台时，会暂停
+
+### DOMHighResTimeStamp
+1. DOMHighResTimeStamp一般认为是窗口生命周期开始的标准时间，一般和requestAnimationFrame结合使用
+2. 有一个类似的时间performance.now()，和DOMHighResTimeStamp几乎相等
+3. performance.now()在任意处都可调用，更通用。
