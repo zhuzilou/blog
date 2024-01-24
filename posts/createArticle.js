@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const readline = require('readline')
+const dayjs = require('dayjs')
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -21,7 +22,7 @@ rl.question('请输入标题: ', title => {
   rl.question('请输入标签: ', tag => {
     rl.question('请输入描述: ', description => {
       rl.close()
-      const currentDate = new Date().toISOString().slice(0, 10)
+      const currentDate = dayjs().format('YYYY/MM/DD HH:mm:ss')
       const existingPrefixNumbers = getExistingPrefixNumbers()
       const newPrefixNumber = existingPrefixNumbers.length > 0 ? Math.max(...existingPrefixNumbers) + 1 : 1
       const paddedPrefix = String(newPrefixNumber).padStart(3, '0')
