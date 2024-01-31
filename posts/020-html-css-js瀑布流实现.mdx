@@ -1,0 +1,209 @@
+---
+title: html-css-js瀑布流实现
+date: 2024/01/31 21:32:55
+tag: html,js,css,vue
+description: 使用css绝对定位，配合js实现瀑布流
+---
+
+## 瀑布流是什么
+瀑布流是页面的一种呈现形式，特点是页面上有大量`等宽`和`不等高`的元素，表现是参差不齐的布局，并且随着页面的滚动会不断加载新数据到页面底部。瀑布流在移动端的表现更好。
+
+## 使用js和绝对定位实现瀑布流
+
+思路：
+1. 瀑布流元素定宽，第一行按顺序排列，并把每个元素的高度记录在数组中
+2. 第二行开始，根据记录的高度，把最新的一个元素插入到数组当前最低的一列去
+
+## 实现的瀑布流React组件
+
+<WaterFall />
+
+```tsx
+import { useEffect, useRef, useState } from 'react'
+
+const getRandomNum = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min)
+
+const randomHexColorCode = () => {
+  let n = (Math.random() * 0xfffff * 1000000).toString(16)
+  return '#' + n.slice(0, 6)
+}
+
+const waterFallList = Array.from({ length: 100 }, () => ({
+  height: getRandomNum(40, 300),
+  color: randomHexColorCode(),
+}))
+
+export default function SiteWaterFall() {
+  const [waterList, setWaterList] = useState<
+    {
+      left: number
+      top: number
+      height: number
+      color: string
+      content: any
+    }[]
+  >([])
+  const [heightList, setHeightList] = useState<number[]>([])
+  const [width, setWidth] = useState<number>(0)
+  const containerRef = useRef(null)
+
+  // 初始化
+  useEffect(() => {
+    const containerWidth = (containerRef.current as any).getBoundingClientRect().width
+    const column = 8
+    const width = containerWidth / column
+
+    setWidth(width)
+
+    const newWaterList = []
+    const newHeightList: number[] = []
+
+    for (let i = 0; i < waterFallList.length; i++) {
+      if (i < column) {
+        newWaterList.push({
+          left: i * width,
+          top: 0,
+          height: waterFallList[i].height,
+          color: waterFallList[i].color,
+          content: i,
+        })
+        newHeightList.push(waterFallList[i].height)
+      } else {
+        let index = 0
+        let current = newHeightList[0]
+
+        newHeightList.forEach((h, i) => {
+          if (current > h) {
+            current = h
+            index = i
+          }
+        })
+
+        newWaterList.push({
+          left: index * width,
+          top: newHeightList[index],
+          height: waterFallList[i].height,
+          color: waterFallList[i].color,
+          content: i,
+        })
+
+        newHeightList[index] = newHeightList[index] + waterFallList[i].height // 10是边距
+      }
+    }
+
+    setWaterList(newWaterList)
+    setHeightList(newHeightList)
+  }, [containerRef])
+
+  return (
+    <div ref={containerRef} className="relative" style={{ height: Math.max(...heightList) + 'px' }}>
+      {waterList.map((item, index) => (
+        <div
+          className="absolute px-3 pb-3"
+          style={{
+            left: item.left + 'px',
+            top: item.top + 'px',
+            width: width + 'px',
+            height: item.height + 'px',
+          }}
+          key={index}
+        >
+          <div className="h-full" style={{ background: item.color }}>
+            {item.content}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+
+## 实现的瀑布流Vue组件
+``` js
+<!-- eslint-disable vue/no-mutating-props -->
+<script lang="ts" setup>
+import { onMounted, reactive } from 'vue'
+
+type picture = {
+  id: number
+  color: string
+  height: number
+  left: number
+  top: number
+}
+const props = defineProps<{
+  pictureList: { id: number; color: string; height: number }[]
+}>()
+
+const waterList = reactive<picture[]>([])
+
+const heightList = reactive<number[]>([])
+const init = () => {
+  const clientWidth = document.body.clientWidth
+  const column = 8
+  const width = clientWidth / column
+  console.log(clientWidth, column, width, '@@@@')
+
+  for (let i = 0; i < props.pictureList.length; i++) {
+    if (i < column) {
+      waterList.push({
+        ...props.pictureList[i],
+        left: i * width,
+        top: 0
+      })
+      heightList.push(props.pictureList[i].height)
+    } else {
+      let index = 0
+      let current = heightList[0]
+      // 找到当前最短的那一项
+      heightList.forEach((h, i) => {
+        if (current > h) {
+          current = h
+          index = i
+        }
+      })
+      heightList[index] = heightList[index] + props.pictureList[i].height + 20
+      waterList.push({
+        ...props.pictureList[i],
+        left: index * width,
+        top: current + 20
+      })
+      // debugger
+    }
+  }
+  console.log(waterList)
+}
+onMounted(() => {
+  init()
+})
+</script>
+
+<template>
+  <div class="wrapper">
+    <div
+      v-for="item in waterList"
+      :key="item.id"
+      class="items"
+      :style="{
+        left: item.left + 'px',
+        top: item.top + 'px',
+        height: item.height + 'px',
+        backgroundColor: item.color
+      }"
+    >
+      {{ item.id }}
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.wrapper {
+  position: relative;
+  .items {
+    position: absolute;
+    width: 80px;
+  }
+}
+</style>
+```
