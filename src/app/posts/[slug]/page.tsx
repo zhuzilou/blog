@@ -50,7 +50,7 @@ export default async function PostLayout({ params }: { params: { slug: string } 
   const MDXContent = useMDXComponent(post.body.code)
 
   return (
-    <div className="mx-auto sm:my-5 max-w-5xl py-5 sm:p-5 bg-base-100 rounded-lg">
+    <div className="mx-auto sm:my-5 max-w-5xl py-5 sm:p-5 bg-base-100 rounded-lg overflow-hidden">
       <article className="mb-20">
         <div className="text-center -mb-4">
           <h1 className="mt-4 text-4xl font-bold">{post.title}</h1>
