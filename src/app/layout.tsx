@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 import SiteHeader from '@/layout/HeaderLayout'
-import SiteFooter from '@/layout/FooterLayout'
 import SiteScrollTop from '@/components/SiteScrollTop'
 
 export const metadata: Metadata = {
@@ -31,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <Script src="/iconfont.js" strategy="lazyOnload" />
         </div>
-        <SiteFooter />
 
         <SiteScrollTop />
 
