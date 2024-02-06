@@ -1,0 +1,133 @@
+---
+title: 表格排序前端组件-后端排序方案
+date: 2024/02/06 16:30:51
+tag: html,js,css,小程序
+description: 根据传入的keys，表格表头增加上下排序的小按钮，通过点击改变激活的颜色和位置。并且发送自定义事件，包含点击列的key和当前的排序类型（顺序/倒序/不排序）
+---
+
+## 前情提要
+公司项目的原生小程序需要使用自定义表格组件，我使用了[mmmml-zhao/table_component: 自定义table组件 (github.com)](https://github.com/mmmml-zhao/table_component)的表格组件，但是其中不包括表格排序的实现，于是自己简单实现一下。
+
+
+
+## 伪代码
+
+```plain
+<MyTable [要排序的key1, 要排序的key2] 监听自定义表格的事件（接受key和type） />
+```
+
+实现的效果
+
+![自定义表格排序](https:/qiniu.djdg626.com/image-20240206163654913.png)
+
+
+
+## 上下箭头css
+用了自定义属性选择器来给正确的箭头改变颜色
+```css showLineNumbers {24,27}
+.table-header .tr .th.sortable {
+  display: flex;
+  align-items: center;
+}
+.table-header .tr .th.sortable .arrows {
+  display: flex;
+  flex-direction: column;
+  margin-left: 2rpx;
+}
+.table-header .tr .th.sortable .arrows .arrow {
+  display: inline-block;
+  margin: 2rpx 0;
+  width: 0;
+  height: 0;
+  border-left: 3px solid rgba(0, 0, 0, 0);
+  border-right: 3px solid rgba(0, 0, 0, 0);
+}
+.table-header .tr .th.sortable .arrows .arrow.up {
+  border-bottom: 5px solid #000;
+}
+.table-header .tr .th.sortable .arrows .arrow.down {
+  border-top: 5px solid #000;
+}
+.table-header .tr .th.sortable[data-sort="ascending"] .arrow {
+  border-bottom-color: #3877f5 !important;
+}
+.table-header .tr .th.sortable[data-sort="descending"] .arrow {
+  border-top-color: #3877f5 !important;
+}
+```
+## html
+
+使用wxs是因为在\{\{\}\}中使用includes不知道为什么不生效
+
+```html showLineNumbers {6,7,8}
+<wxs module="utils">var isInclude = function(arr, value) {return arr.indexOf(value) !== -1};module.exports={isInclude: isInclude}</wxs>
+<view class="inline-block">
+  <view class="tr tr-th">
+    <view class="th select" wx:if="{{select}}"></view>
+    <view
+      class="{{utils.isInclude(sortedKeys, item.key) ? 'sortable th' : 'th'}}"
+      data-sort="{{item.key === sortedKey ? sort : ''}}"
+      data-key="{{item.key}}"
+      style="width:{{table.computedTdWidth(columns,item, select,scrollX)}};{{index===columns.length-1?'flex-grow:1;flex-shrink:1':''}}"
+      wx:for="{{columns}}"
+      wx:key="key"
+      bind:tap="triggerThSort"
+    >
+      {{item.title}}
+      <view class="arrows">
+        <span class="arrow up"></span>
+        <span class="arrow down"></span>
+      </view>
+    </view>
+  </view>
+</view>
+```
+## js
+
+1. 第五行如果点击的列key在传入的sortedKeys中才继续
+2. 第七行，不是连续点击排序列，使用descending降序
+3. 16行，连续点击，根据descending,ascending,不排序依次传递
+4. 12,18行，发送自定义事件，传递排序的key和sort
+5. 外部接收参数发送请求，修改表格数据即可
+
+```js showLineNumbers {5,7,16,12,28}
+function triggerThSort(e) {
+  const data = e.currentTarget.dataset;
+  if (
+    this.data.sortedKeys.length > 0 &&
+    this.data.sortedKeys.includes(data.key)
+  ) {
+    if (data.key !== this.data.sortedKey) {
+      this.setData({
+        sortedKey: data.key,
+        sort: "descending",
+      });
+      this.triggerEvent("sortaction", {
+        key: data.key,
+        type: "descending",
+      });
+    } else {
+      let newSort = "";
+      if (data.sort === "") {
+        newSort = "descending";
+      } else if (data.sort === "descending") {
+        newSort = "ascending";
+      } else {
+        newSort = "";
+      }
+      this.setData({
+        sort: newSort,
+      });
+      this.triggerEvent("sortaction", {
+        type: newSort,
+        key: data.key,
+      });
+    }
+  }
+}
+```
+
+## 代码仓库
+
+[github仓库](https://github.com/zhangwh754/table_component)
+[原仓库](https://github.com/mmmml-zhao/table_component)
