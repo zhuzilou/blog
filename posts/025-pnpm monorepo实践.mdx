@@ -1,0 +1,65 @@
+---
+title: pnpm monorepo实践
+date: 2024/02/08 20:39:29
+tag: node.js
+description: 使用pnpm构建monorepo库，实时预览本地开发的lib。
+---
+
+## 基础
+
+monorepo 是一个主代码库下包含多个关联的 lib，但是逻辑互相独立，使用 monorepo 可以互相关联测试这些 lib。
+
+## 基本搭建
+
+```bash
+pnpm init
+```
+
+我这次搭建的 monorepo 库是我自己一个人使用，因此 package.json 文件的 name 使用 djdg626，内部的子 lib 使用@djdg626/[packageName]，这在npm中代表作用域package
+
+Ps: npm publish发布作用域包时默认当做非公开的，普通账户发布会失败，需要修改publish指令
+```bash
+npm publish --access public
+```
+
+`pnpm-workspace.yaml`是声明工作区文件，packages下的所有文件夹都会被当做一个package，如packages/myConsole
+pages用来存放预览lib库的html项目，可以通过pnpm add本地lib，再import引入即可实时浏览效果。
+```yaml
+packages:
+    - 'packages/**'
+    - 'pages'
+```
+
+## 依赖安装
+pnpm monorepo 安装依赖，可以把所有packages要用的共同依赖存放在根目录下，这样就不需要重复在每个packages下安装。安装在根目录的命令是在pnpm add [packageName]后增加-w后缀，如果希望单独安装在package下，cd进入对应目录再执行pnpm add命令即可。
+
+## 其他
+### vite打包插件配置
+pnpm build打包后，会把src下的代码打包为umd和es格式的库，并自动生成对应的.d.ts类型文件。
+```js
+// vite.config.mts
+import { resolve } from 'path'
+import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
+
+export default defineConfig({
+  plugins: [
+    dts({
+      entryRoot: resolve(__dirname, './src'),
+    }),
+  ],
+  build: {
+    outDir: 'lib',
+    lib: {
+      entry: resolve(__dirname, './src/index.ts'),
+      name: 'ESDrager',
+      fileName: format => `index.${format}.js`,
+    },
+  },
+})
+
+```
+
+
+## 代码仓库
+[monorepo仓库](https://github.com/zhangwh754/djdg626-monorepo)
