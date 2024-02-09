@@ -1,0 +1,314 @@
+---
+title: 简易vue-mvvm实现
+date: 2024/02/09 11:27:56
+tag: vue,js
+description: 简单实现vue的mvvm，使用数据劫持（Object.defineProperty）结合观察者模式，在模板编译时让数据劫持的get添加依赖，在数据修改时通知观察者模式更新视图。
+---
+
+## 观察者模式
+
+观察者模式定义了对象之间的依赖关系，当一个对象发生改变时，将通知所有依赖他的对象，并调用 update 方法更新（视图或数据等）。
+
+简单来说，观察者模式就是观察者和目标之间的事件通讯。目标把自己添加到观察者中去，观察者变化时遍历通知所有目标。
+Vue 在模板编译时把自己添加到了观察者中（即初始化时），数据变化时再通知目标更新页面视图。
+
+## 数据劫持
+
+vue2 使用的数据劫持是`Object.defineProperty`，通过重写属性的 get 和 set 方法，可以监听到对数据的读写。
+缺点是：
+
+1. Object.defineProperty 只能处理属性，不能劫持整个对象或数组，因此需要监听对象内部的变化需要遍历对象的属性。
+2. Object.defineProperty 处理不了 Array 上的 push、pop 等方法
+3. 不能劫持新动态添加的属性，只能劫持已存在的属性
+
+相比之下，`proxy`可以劫持整个对象或数组，也能监听到数组方法，也能监听到对新增属性的操作。
+
+## 1.模板编译
+
+构造函数传入 vue 实例 vm，根节点 app，data 数据
+通过 node.nodeType 判断节点的类型
+nodeType=3|文本节点类型
+nodeType=1|元素节点类型
+
+17 行遍历处理元素节点嵌套
+
+```ts showLineNumbers {17}
+class Compiler {
+  constructor() {
+    this.compile()
+  }
+
+  compile(el: HTMLElement | ChildNode) {
+    if (!el.childNodes || el.childNodes.length === 0) return
+
+    Array.from(el.childNodes).forEach(node => {
+      if (this.isElementNode(node)) {
+        this.compileElementNode(node as HTMLElement)
+      } else if (this.isTextNode(node)) {
+        this.compileTextNode(node)
+      }
+
+      // 嵌套元素节点 进行递归
+      this.compile(node)
+    })
+  }
+}
+```
+
+文本节点类型，如\<span>\{\{aaa\}\}\</span>
+通过正则表达式匹配到mustache后，替换即可。
+
+元素节点类型，判断上面存在的属性，如v-model,v-bind,v-on:click等
+1. v-bind通过node.setAttribute(xx, yy)来设置属性
+2. v-on:click设置事件监听器
+3. v-model是上面两者的结合
+
+```ts
+compileElementNode(node: HTMLElement) {
+  Array.from(node.attributes).forEach(attribute => {
+    const name = attribute.name.split('')
+
+    if (name.shift() === ':') {
+      const newName = name.join('')
+
+      node.setAttribute(newName, this.data[attribute.value])
+
+    } else if (attribute.name.startsWith('@')) {
+      const newName = name.join('')
+
+      node.addEventListener(newName, (...args) => {
+        this.methods[attribute.value].apply(this.vm, args)
+      })
+    }
+
+    if (attribute.name.startsWith('v-')) {
+      directive[attribute.name as keyof typeof directive]?.(node, attribute.value, this.data)
+    }
+  })
+}
+
+compileTextNode(node: ChildNode) {
+  const regExp = /\{\{(.+?)\}\}/g
+
+  const rawTextContent = node.textContent
+  const matchResult = node.textContent?.match(regExp)
+
+  if (matchResult) {
+    matchResult.forEach(mustache => {
+      const key = regExp.exec(node.textContent!)?.[1].trim()!
+
+      node.textContent = node.textContent?.replace(mustache, this.data[key])!
+    })
+  }
+}
+```
+实例化Compiler类即可完成模板编译。
+![模板编译](https://qiniu.djdg626.com/202402091209610.png)
+
+## 数据响应式处理
+本文是基于vue2的mvvm实现，需要通过Object.defineProperty遍历处理data中的属性，重写get和set方法
+
+16行，即递归把对象的每层每个属性都重写get set方法
+35行，如果set赋予了一个对象，那么也需要继续进行响应式处理。
+
+```js showLineNumbers {16,35}
+class Observers {
+  constructor(data) {
+    this.walk(data);
+  }
+
+  walk(data) {
+    if (!data || typeof data !== "object") return;
+
+    const keys = Object.keys(data);
+
+    keys.forEach((key) => {
+      // 把自己变成响应式对象
+      this.defineReactive(data, key, data[key]);
+
+      // 对自己的每个值也应用walk函数
+      this.walk(data[key]);
+    });
+  }
+
+  defineReactive(data, key, value) {
+    const that = this;
+
+    Object.defineProperty(data, key, {
+      enumerable: true,
+      configurable: true,
+      get() {
+        console.log('get..');
+        return value;
+      },
+      set(newValue) {
+        if (value === newValue) return;
+
+        console.log('set..');
+        value = newValue;
+
+        // 赋值引用类型
+        that.walk(value);
+      },
+    });
+  }
+}
+```
+
+## Deps和Sub
+
+Deps很简单，为addSubs和notify方法
+Sub在构造函数中设置了Deps的target静态属性，并访问了一次响应式对象，触发了get方法，又重新把静态属性置空。
+
+```ts showLineNumbers {31,34,37}
+export class Deps {
+  deps: Sub[]
+
+  constructor() {
+    this.deps = []
+  }
+
+  addSubs(sub: Sub) {
+    if (sub && typeof sub.update === 'function') {
+      this.deps.push(sub)
+    }
+  }
+
+  notify(newValue: any) {
+    this.deps.forEach(dep => {
+      dep.update(newValue)
+    })
+  }
+
+  static target: null | Sub
+}
+
+export class Sub {
+  callback: Function
+  oldValue: any
+
+  constructor(data: Object, key: String, callback: Function) {
+    this.callback = callback
+
+    // 把自身指向Deps.target
+    Deps.target = this
+
+    // 读取一次自身触发get，添加到Deps的subs内
+    data[key as keyof typeof data]
+
+    // 避免重复添加
+    Deps.target = null
+  }
+
+  update(newValue: any) {
+    this.callback(newValue)
+  }
+}
+```
+
+## 数据劫持结合观察者模式
+数据响应式处理中重写了属性的get和set方法
+
+现在我们希望在数据改变时（set方法），能够通知页面视图的模板重新更新，重新触发compileTextNode或compileElementNode中的方法。即set时notify观察者中的目标对象，调用update方法，update调用更新视图的回调函数即可。
+
+在模板编译时，添加依赖，并传入更新视图的回调函数。
+
+以compileTextNode为例，实例化Sub的同时，Deps会被添加一个静态属性，同时会触发get方法
+因此接下来去get方法添加Subs即可。添加完target后置空避免了反复添加依赖。
+
+```ts showLineNumbers {13,14,15}
+compileTextNode(node: ChildNode) {
+  const regExp = /\{\{(.+?)\}\}/g
+
+  const rawTextContent = node.textContent
+  const matchResult = node.textContent?.match(regExp)
+
+  if (matchResult) {
+    matchResult.forEach(mustache => {
+      const key = regExp.exec(node.textContent!)?.[1].trim()!
+
+      node.textContent = node.textContent?.replace(mustache, this.data[key])!
+
+      new Sub(this.data, key, (newValue: any) => {
+        node.textContent = rawTextContent?.replace(mustache, newValue)!
+      })
+    })
+  }
+}
+```
+
+```ts showLineNumbers {8}
+defineReactive(data: Object, key: string, value: any) {
+  const deps = new Deps()
+
+  Object.defineProperty(data, key, {
+    configurable: true,
+    enumerable: true,
+    get() {
+      Deps.target && deps.addSubs(Deps.target)
+
+      return value
+    },
+    set(newValue) {
+      value = newValue
+
+      deps.notify(newValue)
+    },
+  })
+}
+```
+
+## 其他
+### vm实例上的属性
+vue还在vm实例，即常用的this上绑定了$el,$data,$data上的属性等，方便调用
+```ts
+import { Observers } from './Observers'
+import { Compiler } from './Compiler'
+
+type Options = {
+  el: string
+  data: Object
+  methods: { [key: string]: Function }
+}
+
+export default class Mvvm {
+  $options: Options
+  $el: HTMLElement
+  $data: Object
+  $methods: { [key: string]: Function }
+
+  constructor(options: Options) {
+    this.$el = document.querySelector(options.el)!
+    this.$options = options
+    this.$data = options.data
+    this.$methods = options.methods
+
+    this._proxyData(options.data)
+
+    new Observers(this.$data)
+    new Compiler(this, this.$el, this.$data, this.$methods)
+  }
+
+  _proxyData(data: Object) {
+    if (!data || typeof data !== 'object') {
+      throw new Error('data需要传入一个对象')
+    }
+
+    Object.keys(data).forEach(key => {
+      Object.defineProperty(this, key, {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.$data[key]
+        },
+        set(newValue) {
+          this.$data[key] = newValue
+        },
+      })
+    })
+  }
+}
+```
+
+## 代码仓库
+[vue-mvvm实现](https://github.com/zhangwh754/djdg626-monorepo/tree/main/packages/02-vue-mvvm)
