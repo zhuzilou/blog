@@ -1,0 +1,61 @@
+---
+title: Promise自定义retry方法
+date: 2024/02/17 22:55:46
+tag: js
+description: 给Promise添加自定义retry方法
+---
+
+## 简要
+春节给自己放了一周假，今天开始继续写博客。本文给Promise构造函数添加了自定义的retry方法
+
+实现思路是
+1. 返回一个新的Promise
+2. Promise内使用使用while循环
+3. 用try catch包裹
+4. 等待传入的异步回调的执行
+5. 失败进入catch，判断次数用尽就抛出多次执行失败
+6. 成功返回结果，并break跳出循环。
+
+
+```js showLineNumbers {22,27,20}
+function foo() {
+  const num = Math.random()
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (num > 0.9) {
+        resolve(num)
+      } else {
+        reject(num)
+      }
+    }, 1000)
+  })
+}
+
+/**
+ * @description: Promise的自定义retry方法
+ * @param {*} fn [需要重复执行的异步函数]
+ * @param {*} times [需要重复执行的上限次数]
+ * @return {Promise}
+ */
+Promise.__proto__.retry = (fn, times) => {
+  return new Promise(async(resolve, reject) => {
+    while(times--) {
+      try {
+        const res = await fn()
+        console.log('执行成功：', res)
+        resolve(res)
+        break
+      } catch(err) {
+        console.log('执行失败', err)
+        if(!times) {
+          reject()
+        }
+      }
+    }
+  }).catch(() => {
+    console.log('次数用尽，全部失败')
+  })
+}
+
+Promise.retry(foo, 5)
+```
