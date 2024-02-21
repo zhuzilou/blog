@@ -1,0 +1,101 @@
+---
+title: vant-uploader组件自定义预览和占位图片
+date: 2024/02/21 14:54:05
+tag: vue
+description: 业务需要，需要表单上传的图片支持预览。同时后端不会直接返回图片的资源（get请求），而是返回存储桶中文件的路径，前端再在点击时去请求图片的文件流来显示。需要在刚开始显示一张本地的占位图片（点击下载），点击后请求图片。后续点击图片正常显示。
+---
+
+## 前言
+
+最近很忙，一直加班，抽不出时间来写博客。
+
+vant-uploader 的版本是 2（vue2 版本）
+
+实现思路是不使用 vant-uploader 默认打开的图片预览，关闭配置，自己手动调用 ImagePreview 函数
+
+## 实现代码
+
+### 显示占位图片
+
+```js
+import placeholder from '@/assets/image/placeholder.png'
+export default {
+  // 模拟后端返回图片列表
+  created() {
+    this.formDataB[0].fileList1 = [
+      {
+        url: placeholder, // 用于预览
+        isImage: true, // 用于vant uploader组件的图片回显
+        isUpload: true, // 已上传到图片服务器
+        imgId: 'xxxx', // 图片在服务器上的id
+        isPreview: true,
+      },
+    ]
+  },
+}
+```
+
+```html showLineNumbers {3}
+<van-uploader v-model="$fileList" :preview-full-image="false" multiple />
+```
+
+效果
+![占位图片](https:/qiniu.djdg626.com/20240221150051.png)
+
+### 点击占位下载图片
+
+```html showLineNumbers {5}
+<van-uploader v-model="$fileList" :preview-full-image="false" multiple @click-preview="clickPreview" />
+```
+
+```js showLineNumbers {3,16,18,19}
+async clickPreview(file) {
+  if (file && file.isPreview === true) {
+    this.downloadImage(file)
+  } else {
+    // ...
+  }
+}
+
+async downloadImage(file) {
+  try {
+    this.$toast.loading({ message: '加载中', duration: 0, forbidClick: true })
+    const filename = '2b92f5e9f47d9f0843d1d0652b8ca113_quality_30.jpg'
+
+    const url = `http://localhost:7047/file/stream`
+
+    const response = await axios.post(url, { img: filename }, { responseType: 'arraybuffer' })
+
+    const blob = new Blob([response.data], { type: 'image/jpeg' })
+    const imageUrl = URL.createObjectURL(blob)
+
+    file.url = imageUrl
+    file.isPreview = false
+
+    this.$toast.clear()
+  } catch (error) {
+    this.$toast.clear()
+    this.$toast.fail('图片下载失败')
+
+    console.log(error)
+  }
+}
+```
+效果
+![占位图片下载替换](https:/qiniu.djdg626.com/20240221150743.png)
+
+### 点击图片全部预览，跳过占位图片
+```js showLineNumbers {5,7,8,9}
+async clickPreview(file) {
+  if (file && file.isPreview === true) {
+    // ...
+  } else {
+    const previewList = this.fileList.filter(file => file.isPreview !== true)
+
+    ImagePreview({
+      images: previewList.map(item => item.url || item.content),
+      startPosition: previewList.findIndex(item => item === file),
+    })
+  }
+}
+```
