@@ -5,4 +5,99 @@ tag: js
 description: 实现DropFileChoose类，支持拖拽文件到指定dom元素，通过回调函数获取拖拽的文件
 ---
 
-## 标题
+## 概述
+
+实现 DropFileChoose 类，支持拖拽文件到指定 dom 元素，通过回调函数获取拖拽的文件
+
+## 实现代码
+
+```js
+export class DropFileChoose {
+  constructor({ elements, taskRenderer }) {
+    for (let element of elements) {
+      if (element instanceof HTMLElement) {
+        console.log('通过')
+      } else {
+        throw new Error('element is not an HTMLElement')
+      }
+    }
+
+    this.elements = elements
+
+    if (typeof taskRenderer === 'function') {
+      this.taskRenderer = taskRenderer
+    } else {
+      throw new Error('taskRenderer is not a function')
+    }
+
+    this.formData = new FormData()
+
+    this._init()
+  }
+
+  _init() {
+    this.elements.forEach((element, index) => {
+      element.addEventListener('drop', e => this._handleDrop(e, index))
+      element.addEventListener('dragover', this._handleDragover)
+    })
+  }
+
+  _handleDrop = (e, index) => {
+    console.log('handleDrop')
+    //阻止文件被打开
+    e.preventDefault()
+    if (e.dataTransfer.items) {
+      // Use DataTransferItemList interface to access files
+      const item = e.dataTransfer.items[0]
+      if (item.kind === 'file') {
+        const file = item.getAsFile()
+        this.taskRenderer(file, index) // 回调函数传递file
+      }
+    } else {
+      // Use DataTransfer interface to access the files
+
+      // 单个文件
+      {
+        const file = e.dataTransfer.files[0]
+
+        this.taskRenderer(file, index)
+      }
+      // 多个文件
+      // for (const file of e.dataTransfer.files) {
+      //   this.taskRenderer(file, index) // 回调函数传递file
+      // }
+    }
+  }
+
+  _handleDragover = e => {
+    console.log('handleDragover')
+    // Prevent file from being opened
+    e.preventDefault()
+  }
+}
+```
+
+使用 DropFileChoose 类。
+
+```js
+new DropFileChoose({
+  elements,
+  taskRenderer: (file, index) => {
+    const inputs = document.querySelectorAll('label.right input')
+    const input = inputs[index]
+
+    // 和常规的点击上传的input[type=file]并存，使用defineProperty给input的files属性赋值
+    const dataTransfer = new DataTransfer()
+    dataTransfer.items.add(file)
+
+    Object.defineProperty(input, 'files', {
+      value: dataTransfer.files,
+      writable: true,
+      configurable: true,
+    })
+
+    // 其他上传逻辑处理，如显示文件名称等
+    this.handleFileInput(file, index)
+  },
+})
+```
