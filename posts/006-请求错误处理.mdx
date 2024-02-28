@@ -1,0 +1,51 @@
+---
+title: 请求错误处理
+date: 2024-01-01
+tag: js
+description: 正确的处理应用内部语法错误、运行时错误（网络请求服务端返回的错误）
+---
+
+
+
+## 请求错误处理
+
+之前我处理Promise.reject通常是使用大量的try catch来包裹。阅读了掘金的这篇文章[如何正确处理promise、await产生的错误 - 掘金 (juejin.cn)](https://juejin.cn/post/7306714602543317027)，使用window.unhandledrejection，如果是Vue环境中可以使用app.config.errHandle函数，可以捕获未被捕获的错误（未被链式catch或try catch）。
+
+### 示例代码
+
+可以在errHandler函数自定义上报错误，错误堆栈信息
+
+```js
+function errHandler(error) {
+  const reason = error.reason;
+
+  console.error(reason);
+
+  alert(reason);
+}
+
+window.addEventListener("unhandledrejection", (error) => {
+  errHandler(error);
+
+  return true;
+});
+
+function testAsync() {
+  return new Promise((resolve, reject) => {
+    const isSuccess = Math.random() > 0.5;
+
+    isSuccess
+      ? resolve("成功-success")
+      : reject(new Error({ message: "失败-fail" }));
+  });
+}
+
+async function foo() {
+  const result = await testAsync();
+
+  console.log("=====", result);
+}
+
+document.querySelector(".btn").addEventListener("click", foo);
+```
+
