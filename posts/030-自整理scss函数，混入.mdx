@@ -1,0 +1,58 @@
+---
+title: 自整理scss函数，混入
+date: 2024/02/28 10:24:41
+tag: css
+description: 滚动条，x行超出省略
+---
+
+## 自定义滚动条
+
+![滚动条](https://qiniu.djdg626.com/20240228103705.png)
+
+```scss
+@mixin scrollbar {
+  &::-webkit-scrollbar-track-piece {
+    background-color: #fdfefe;
+  }
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+    transition: all 2s;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #aed6f1;
+    border-radius: 100px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: #1890ff;
+  }
+  &::-webkit-scrollbar-corner {
+    background-color: rgba(255, 255, 255, 0);
+  }
+}
+```
+
+## x 行超出省略
+
+```scss
+@mixin overflow($lines: 1) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @if $lines > 1 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: $lines;
+    white-space: normal;
+  }
+}
+```
+
+## 背景渐变
+
+```scss
+@mixin gradient-bg($start-color, $end-color, $direction: to right) {
+  background: linear-gradient($direction, $start-color, $end-color);
+}
+```
