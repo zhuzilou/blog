@@ -1,0 +1,84 @@
+---
+title: 前端预览，生成xlsx
+date: 2024/02/29 22:28:28
+tag: js,vue
+description: 原生js或vue环境，生成，预览用户上传的/后端返回的/本地固定的xlsx表格文件
+---
+
+## xlsx
+
+xlsx 库是 js 环境可用的表格库，[接口文档](https://docs.sheetjs.com/docs/)
+
+可以转换 dom table 元素、转换后端返回的文件流、转换 input[type=file]选择的文件为对应的表格数据对象
+
+### 预览 input[type=file]
+
+1. 使用 xlsx 库，把获取到的 xlsx 转换为 dom html或json
+
+xlsx库的缺点是转换的html没有原表格文件的样式
+```vue
+<script lang="ts" setup>
+import { read, utils } from 'xlsx'
+
+const sheetHtml = ref('')
+
+const fileChange = (event: Event) => {
+  const files = (event.target as HTMLInputElement).files
+  if (!files) return
+  const [file] = files
+
+  file.arrayBuffer().then(res => {
+    const td = read(res)
+    const sheet1 = td.Sheets.Sheet1
+    const _sheetJson = utils.sheet_to_json(sheet1)
+    console.log(JSON.stringify(_sheetJson))
+    const _sheetHtml = utils.sheet_to_html(sheet1)
+    sheetHtml.value = _sheetHtml
+  })
+}
+</script>
+
+<template>
+  <div class="wrapper">
+    <input type="file" name="" id="" @change="fileChange" />
+
+    <div v-if="sheetHtml" v-html="sheetHtml"></div>
+  </div>
+</template>
+```
+
+### 生成（导出）xlsx
+接收后端返回的文件流，导出xlsx给前端下载
+下例中还是用input[type=file]模拟后端返回的blob二进制文件流
+可以利用sheet_to_json方法对数据做处理后再生成对应的表格xlsx文件
+```js
+import axios from 'axios'
+import { read, utils, writeFile } from 'xlsx'
+
+const sheetHtml = ref('')
+
+const fileChange = async (event: Event) => {
+  const files = (event.target as HTMLInputElement).files
+  if (!files) return
+  const [file] = files
+
+  // 使用input[type=file]模拟获取后端接口返回的文件流
+  // 根据文件流导出文件
+  // const res = await axios.get('', { responseType: 'blob' })
+  // const sheetBuffer = res.data.arrayBuffer()
+  const sheetBuffer = await file.arrayBuffer()
+  const td = read(sheetBuffer)
+  const sheet1 = td.Sheets.Sheet1
+  const _sheetJson = utils.sheet_to_json(sheet1).map((item: any) => {
+    item['学号'] = '00' + item['学号']
+    item['年龄'] = item['年龄'] * 2
+    return item
+  })
+  const tb = utils.book_new()
+  utils.book_append_sheet(tb, utils.json_to_sheet(_sheetJson))
+  writeFile(tb, '测试表格2.xlsx')
+}
+```
+
+### 高级预览@vue-office/excel
+见[@vue-office/excel](https://www.npmjs.com/package/@vue-office/excel)
