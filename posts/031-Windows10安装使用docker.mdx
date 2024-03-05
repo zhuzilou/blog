@@ -1,0 +1,71 @@
+---
+title: Windows10安装使用docker
+date: 2024/03/05 13:47:11
+tag: docker,工具
+description: 在windows10下安装使用docker，解决了之前docker无法启动的问题。
+---
+
+## 安装WSL
+wsl是Windows使用docker的前提条件
+
+详细见 [安装 WSL | Microsoft Learn](https://learn.microsoft.com/zh-cn/windows/wsl/install)
+
+```bash
+# 安装wsl
+wsl --install
+
+# 将版本从 WSL 1 升级到 WSL 2
+wsl --set-version 2
+```
+
+## 下载docker
+
+[下载docker-desktop]([Docker Desktop: The #1 Containerization Tool for Developers | Docker](https://www.docker.com/products/docker-desktop/))
+
+安装选项全部勾选
+
+## docker启动失败
+
+[解决docker启动失败](https://blog.csdn.net/weixin_47190898/article/details/131060441)
+
+1. 确认是否开启了HyperV
+
+   - 进入控制面板->程序->启用或关闭windows功能->勾选Hyper-V
+
+2. 如果找不到选项，新建cmd后缀文件，右键以管理员启动后重启
+
+   - ```cmd
+     pushd "%~dp0"
+      
+     dir /b %SystemRoot%\servicing\Packages\*Hyper-V*.mum >hyper-v.txt
+      
+     for /f %%i in ('findstr /i . hyper-v.txt 2^>nul') do dism /online /norestart /add-package:"%SystemRoot%\servicing\Packages\%%i"
+      
+     del hyper-v.txt
+      
+     Dism /online /enable-feature /featurename:Microsoft-Hyper-V-All /LimitAccess /ALL
+     ```
+
+3. 已开启HyperV还不能启动
+
+   - 管理员启动powershell，输入命令后重启
+
+   - ```powershell
+     bcdedit /set hypervisorlaunchtype auto
+     ```
+
+## docker基本使用
+
+[page-spy-web](https://github.com/HuolalaTech/page-spy-web/blob/main/README_ZH.md)
+
+部署page-spy
+**PageSpy** 是一款用来调试远程 Web 项目的工具。基于对原生 API 的封装，它将调用原生方法时的参数进行过滤、转化，整理成格式规范的消息供调试端消费；调试端收到消息数据，提供类控制台可交互式的功能界面将数据呈现出来。
+
+可远程调试
+
+![image-20240305152336507](https://qiniu.djdg626.com/image-20240305152336507.png)
+
+```dockerfile
+docker run -d --restart=always -p 6752:6752 --name="pageSpy" ghcr.io/huolalatech/page-spy-web:latest
+```
+
