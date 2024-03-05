@@ -41,14 +41,14 @@ export const mdxComponents = {
       )
     } else {
       return (
-        <ul {...props} className="my-4 pl-5 list-decimal">
+        <ul {...props} className="my-4 pl-5 [&>li]:list-disc">
           {props.children}
         </ul>
       )
     }
   },
   ol: (props: any) => (
-    <ol {...props} className="my-4 pl-5 list-disc">
+    <ol {...props} className="my-4 pl-5 [&>li]:list-decimal">
       {props.children}
     </ol>
   ),
