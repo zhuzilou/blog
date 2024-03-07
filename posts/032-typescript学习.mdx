@@ -1,0 +1,29 @@
+---
+title: typescript学习知识小结
+date: 2024/03/07 20:58:09
+tag: typescript
+description: typescript学习知识小结
+---
+
+## 函数返回 void
+[assignability-of-functions](https://www.typescriptlang.org/docs/handbook/2/functions.html#assignability-of-functions)
+
+指定一个返回 void 的函数类型不会强制要求不返回，而是会ts上下文`忽略`掉返回的值（js 不会忽略掉）
+
+即 ts 类型推断会认为这个函数没返回值
+
+而直接在声明函数时指定 void 返回类型，会正常生效 ts 校验。
+
+```ts
+type voidFunc = () => void
+
+// 有效
+const f1: voidFunc = () => {
+  return true
+}
+
+// 报错
+const f1: void = () => {
+  // return true;
+}
+```
