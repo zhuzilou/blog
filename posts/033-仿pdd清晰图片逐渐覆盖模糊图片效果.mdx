@@ -1,0 +1,40 @@
+---
+title: 仿pdd清晰图片逐渐覆盖模糊图片效果
+date: 2024/03/25 09:21:00
+tag: 转载,css
+description: 即加载两张图片，外层盒子用background-image加载模糊小图，尺寸即盒子的尺寸。内层img标签src设置大图链接。
+---
+
+## 介绍
+即加载两张图片，外层盒子用background-image加载模糊小图，尺寸即盒子的尺寸。内层img标签src设置大图链接。因为小图尺寸小所以可以快速加载。而大图加载时，会逐渐加载，慢慢覆盖在父容器的背景图片上。
+
+## 代码
+```html
+<div class="box">
+  <a class="small-img">
+    <img
+      class="large-img"
+      src="https://oss-console-img-demo-cn-hangzhou.oss-cn-hangzhou.aliyuncs.com/example.jpg"
+    />
+  </a>
+</div>
+```
+
+```css
+.box {
+  position: relative;
+}
+.small-img {
+  position: absolute;
+  background-image: url("https://oss-console-img-demo-cn-hangzhou.oss-cn-hangzhou.aliyuncs.com/example.jpg?x-oss-process=image/resize,w_100,m_lfit");
+  background-size: cover;
+  background-position: unset;
+}
+.large-img {
+  width: 200px;
+  height: 200px;
+}
+```
+
+## 原文链接
+[仿百亿补贴，H5 中图片先模糊后清晰的效果如何实现](https://juejin.cn/post/7349427412357611520)
