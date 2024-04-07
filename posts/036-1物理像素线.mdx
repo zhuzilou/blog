@@ -1,0 +1,31 @@
+---
+title: 1物理像素线
+date: 2024/04/07 22:20:39
+tag: css
+description: 实现普通屏幕下1px，高清屏幕下0.5px的一条线
+---
+
+## 概念
+
+使用缩放而非直接写 0.5px 的像素，避免了小数在不同手机的处理不同的问题
+
+```css
+.mod_grid {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    background-color: #ddd;
+    height: 1px;
+    left: 0;
+    right: 0;
+    top: 0;
+    @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+      -webkit-transform: scaleY(0.5);
+      -webkit-transform-origin: 50% 0%;
+    }
+  }
+}
+```
