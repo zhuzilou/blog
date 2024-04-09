@@ -1,29 +1,30 @@
 ---
 title: Vue3响应式基础
 date: 2024-01-20
+update: 2024-04-09
 tag: vue
 description: 本文主要包含vue3中新增的ref和reactive函数的使用和特性。
 ---
 
 ## 响应式基础
 
-可以使用ref()函数声明一个响应式状态。
+可以使用 ref()函数声明一个响应式状态。
 
-可以使用reactive()函数使一个对象具有响应性，使用Proxy拦截对响应式对象所有属性的访问和修改。当ref函数包装一个对象时，内部会调用reactive函数
+可以使用 reactive()函数使一个对象具有响应性，使用 Proxy 拦截对响应式对象所有属性的访问和修改。当 ref 函数包装一个对象时，内部会调用 reactive 函数
 
-### 为什么要使用ref
+### 为什么要使用 ref
 
-js中不能检测基本类型变量的访问和修改，但是可以拦截对象的get和set
+js 中不能检测基本类型变量的访问和修改，但是可以拦截对象的 get 和 set
 
-因此可以把ref视作一个把变量包装为同名对象的函数，.value是原始值，可以追踪.value的get set。
+因此可以把 ref 视作一个把变量包装为同名对象的函数，.value 是原始值，可以追踪.value 的 get set。
 
-并且，当一个组件初次渲染时，Vue会自动追踪渲染时使用的每一个ref，当某个ref被修改时，Vue会重新渲染追踪他的组件。
+并且，当一个组件初次渲染时，Vue 会自动追踪渲染时使用的每一个 ref，当某个 ref 被修改时，Vue 会重新渲染追踪他的组件。
 
 ### reactive proxy
 
-reactive会返回一个Proxy对象，和原始对象并不相等，更改原始对象不会影响Vue Proxy
+reactive 会返回一个 Proxy 对象，和原始对象并不相等，更改原始对象不会影响 Vue Proxy
 
-- 修改origin obj，视图不更新
+- 修改 origin obj，视图不更新
 - 修改代理对象，视图更新，原始对象更新
 
 <Alert type="info" msg="改一次origin，再改proxy，第一次修改也会被应用，不会丢失" />
@@ -33,7 +34,7 @@ reactive会返回一个Proxy对象，和原始对象并不相等，更改原始�
 import { reactive } from 'vue'
 
 const obj = {
-  a: 1
+  a: 1,
 }
 
 const _obj = reactive(obj)
@@ -50,14 +51,14 @@ const _obj = reactive(obj)
 </template>
 ```
 
-### reactive的局限性
+### reactive 的局限性
 
 1. 不能用于基本类型
-2. 直接替换reactive的返回值，响应式会丢失
+2. 直接替换 reactive 的返回值，响应式会丢失
 3. 解构的值不具有响应性
 
-下例中，使用reactive，17行视图不更新，响应丢失
-使用ref，17行视图更新，响应保持，因为obj自身的指向没有被修改，而是内部的value被修改了，所以可以被vue追踪到，而reactive则不行。
+下例中，使用 reactive，17 行视图不更新，响应丢失
+使用 ref，17 行视图更新，响应保持，因为 obj 自身的指向没有被修改，而是内部的 value 被修改了，所以可以被 vue 追踪到，而 reactive 则不行。
 
 ```vue showLineNumbers {8,9,17}
 <script lang="ts" setup>
@@ -83,28 +84,55 @@ const btnClick = () => {
 </template>
 ```
 
-### ref、reactive其他
+### 怎么样更新整个 reactive 响应式对象
+
+Vue 官方文档告诉我们：
+
+<Alert msg="不能替换整个对象：由于 Vue 的响应式跟踪是通过属性访问实现的，因此我们必须始终保持对响应式对象的相同引用。这意味着我们不能轻易地“替换”响应式对象，因为这样的话与第一个引用的响应性连接将丢失" />
+
+我们一般更新 reactive 的属性是一个个更新的，但是如果有大量属性要更新会很麻烦，替换整个 reactive 的方法是使用 Object.assign，把新对象合并到旧的响应式对象里面，这样响应式才不会丢失
+
+```vue
+<script setup>
+import { reactive } from 'vue'
+
+
+let obj = reactive({ msg: "hello world" })
+
+function msgChange() {
+  // obj = reactive({ msg: "你好世界" })
+  obj = Object.assign(obj, { msg: "你好世界" })	// 正确的方式
+}
+</script>
+
+<template>
+  <h1>{{ obj.msg }}</h1>
+  <button @click="msgChange">msgChange</button>
+</template>
+```
+
+### ref、reactive 其他
 
 ref
 
-1. 只有顶层的ref，会被模板自动解包
-2. 嵌套的ref可以使用解构，解构为顶层ref
+1. 只有顶层的 ref，会被模板自动解包
+2. 嵌套的 ref 可以使用解构，解构为顶层 ref
 
 reactive
 
-1. reactive对象中可以放ref作为属性，不需要手动添加.value
-2. 给reactive对象的某个ref属性赋值新的ref，旧ref会被新ref替换
-3. reactive数组不包括上述两个特性
+1. reactive 对象中可以放 ref 作为属性，不需要手动添加.value
+2. 给 reactive 对象的某个 ref 属性赋值新的 ref，旧 ref 会被新 ref 替换
+3. reactive 数组不包括上述两个特性
 
-### dom更新和数据更新
+### dom 更新和数据更新
 
 响应式数据更新是同步（立即发生）的
 
 但是视图的更新不是同步的，而是一段时间发生一次
 
-Vue把这段时间称作`next tick`更新周期，一段周期只会发生一次视图更新
+Vue 把这段时间称作`next tick`更新周期，一段周期只会发生一次视图更新
 
-如果希望等待视图更新，可以使用nextTick函数
+如果希望等待视图更新，可以使用 nextTick 函数
 
 ```js
 await nextTick()
@@ -112,11 +140,11 @@ await nextTick()
 
 ### shallowRef
 
-默认情况下ref会调用reactive处理引用类型，当修改深层属性时会被追踪
+默认情况下 ref 会调用 reactive 处理引用类型，当修改深层属性时会被追踪
 
-如果不希望递归追踪内部属性，可以使用shallowRef
+如果不希望递归追踪内部属性，可以使用 shallowRef
 
-shallowRef包裹的引用类型，只有当.value自身发生改变才会被追踪。
+shallowRef 包裹的引用类型，只有当.value 自身发生改变才会被追踪。
 
 可以优化性能
 
@@ -129,4 +157,3 @@ state.value.count = 2
 // 会触发更改
 state.value = { count: 2 }
 ```
-
