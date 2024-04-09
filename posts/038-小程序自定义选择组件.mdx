@@ -1,0 +1,124 @@
+---
+title: 微信小程序自定义选择组件
+date: 2024/04/09 20:20:45
+tag: 微信小程序
+description: 封装的一个列表组件，可以自由单选、多选、反选工单数据，获得选择的工单集合的id
+---
+
+## 组件封装
+
+### 组件代码
+
+隐去了部分业务代码
+
+```html
+// index.wxml
+<view class="order__item">
+  <view class="header">
+    <view class="order__id">{{orderInfo.id}}</view>
+
+    <view class="actions">
+      <view class="desc">回单审核</view>
+      <view wx:if="{{!isSelected}}" class="checkbox" bind:tap="toggleSelect"></view>
+      <view wx:else class="checkbox checked" bind:tap="toggleSelect"></view>
+    </view>
+  </view>
+
+  <view class="list" bind:tap="goPage">
+    <view class="row">
+      <view class="desc">姓名</view>
+      <view class="content">{{orderInfo.name}}</view>
+    </view>
+    <view class="row">
+      <view class="desc">地址</view>
+      <view class="content">{{orderInfo.age}}</view>
+    </view>
+  </view>
+
+  <view class="footer">
+    <view class="action primary" bind:tap="notifyOrderItem">确认</view>
+  </view>
+</view>
+```
+
+```js
+// index.js
+Component({
+  properties: {
+    orderInfo: Object,
+    isAllSelected: Boolean,
+  },
+
+  data: {
+    isSelected: false,
+  },
+
+  observers: {
+    isAllSelected: function (newValue) {
+      if (newValue === true)
+        this.setData({
+          isSelected: true,
+        });
+    },
+  },
+
+  methods: {
+    notifyOrderItem() {
+      this.triggerEvent("notifyOrderList", this.properties.orderInfo.id);
+    },
+      
+  	goPage(){
+      this.triggerEvent("goOrderDetailPage");
+    },
+
+    toggleSelect() {
+      // 当前选中，进行取消
+      if (this.data.isSelected) {
+        this.setData({ isSelected: false });
+        this.triggerEvent("toggleSelect", {
+          id: this.properties.orderInfo.id,
+          type: "remove",
+        });
+      }
+      // 当前未选
+      else {
+        this.setData({ isSelected: true });
+        this.triggerEvent("toggleSelect", {
+          id: this.properties.orderInfo.id,
+          type: "add",
+        });
+      }
+    },
+  },
+});
+```
+
+### 使用组件
+
+```html
+<OrderItem
+  class="custom-item"
+  isAllSelected="{{isAllSelected}}"
+  orderInfo="{{item}}"
+  wx:for="{{orderList}}"
+  wx:key="id"
+  bind:toggleSelect="toggleSelect"
+  bind:notifyOrderList="notifyOrderList"
+  bind:goOrderDetailPage="goOrderDetailPage"
+/>
+```
+
+## 代码分析
+
+item组件很简单
+
+- props有orderInfo和isAllSelected
+- data有isSelected
+- methods有toggleSelect方法
+
+1. isSelected作为组件自身的属性进行维护
+2. 触发toggleSelect时，切换isSelected，并且向外emit事件，通知父组件修改外部维护的选中的ids
+3. 外部接收到子组件的切换事件时，判断是add还是remove
+4. 如果收到的是add，ids增加本次选中的id，并且判断ids的长度是否等于全部id的长度，如果相等就认为全选处于选中状态
+5. 如果收到的是remove，ids移除id，并把全选状态取消
+6. 如果在外部点击全选，那么把外部的isSelected状态修改，item组件用observers监听器监听isAllSelected props的修改，如果处于全选，则把当前维护的isSelected状态也修改为选中。如果需要反选，再增加对应逻辑即可。
