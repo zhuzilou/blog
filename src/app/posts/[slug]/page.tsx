@@ -56,8 +56,16 @@ export default async function PostLayout({ params }: { params: { slug: string } 
           <h1 className="mt-4 text-4xl font-bold">{post.title}</h1>
 
           <div className="flex justify-center my-3 text-xs">
+            <span>发布于：</span>
             <time dateTime={post.date}>{dayjs(post.date).format('YYYY年MM月DD日')}</time>
           </div>
+
+          {post.update && (
+            <div className="flex justify-center my-3 text-xs">
+              <span>更新于：</span>
+              <time dateTime={post.update}>{dayjs(post.update).format('YYYY年MM月DD日')}</time>
+            </div>
+          )}
 
           {post.tag && <ArticleTags tagStr={post.tag} />}
         </div>
