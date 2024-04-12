@@ -1,0 +1,11 @@
+---
+title: Vue项目debugger失效
+date: 2024/04/12 10:01:02
+tag: vue,devtools
+description: Vue项目在代码中写debugger，浏览器内不会进入断点的解决方法
+---
+
+## 问题描述和解决
+某次浏览器升级后，debugger失效，导致调试代码时，浏览器内不会进入断点。
+
+实测需要在chrome浏览器内核的三个点->设置->忽略列表->取消勾选`/node_modules/|/bower_components/`
