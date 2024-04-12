@@ -4,11 +4,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { groupBy, throttle } from 'lodash'
 import Link from 'next/link'
-import { getYear } from '@/lib/getYear'
+import { getYear, getYearMonth, sortYearMonth } from '@/lib/getYearMonth'
 import Icon from '../../components/SiteIcon'
 import { allPosts as _allPosts } from 'contentlayer/generated'
 
-function SiteTimeLine({ currentYear, years }: { currentYear: number; years: number[] }) {
+function SiteTimeLine({ currentYearMonth, yearMonths }: { currentYearMonth: string; yearMonths: string[] }) {
   return (
     <div className="relative w-1/4 pr-4 flex flex-col">
       <div className="sticky top-32">
@@ -17,12 +17,12 @@ function SiteTimeLine({ currentYear, years }: { currentYear: number; years: numb
           <span className="sm:ml-2">时间线</span>
         </h3>
         <ul className="flex-1 mt-6 sticky top-28 space-y-4 overflow-auto">
-          {years.map(year => {
-            const className = year === currentYear ? `text-secondary font-bold` : `dark:text-gray-300`
+          {yearMonths.map(yearMonth => {
+            const className = yearMonth === currentYearMonth ? `text-secondary font-bold` : `dark:text-gray-300`
 
             return (
-              <li key={year} className={`${className} transition-all`}>
-                {year}
+              <li key={yearMonth} className={`${className} transition-all`}>
+                <a href={`#${yearMonth}`}>{yearMonth}</a>
               </li>
             )
           })}
@@ -32,7 +32,13 @@ function SiteTimeLine({ currentYear, years }: { currentYear: number; years: numb
   )
 }
 
-function PostsList({ setCurrentYear, allPostsGroupByYear }: { setCurrentYear: Function; allPostsGroupByYear: any }) {
+function PostsList({
+  setCurrentYearMonth,
+  allPostsGroupByYearMonth,
+}: {
+  setCurrentYearMonth: Function
+  allPostsGroupByYearMonth: any
+}) {
   const handleScroll = useCallback(
     throttle(() => {
       const postElements = (postListRef.current as any).querySelectorAll('.post-list') // Add a class to your post items
@@ -42,8 +48,9 @@ function PostsList({ setCurrentYear, allPostsGroupByYear }: { setCurrentYear: Fu
 
         if (rect.top < 150) {
           // The post is 150px from the top.
-          const currentYear = parseInt(postElement.getAttribute('data-year') as string)
-          setCurrentYear(currentYear)
+          const currentYearMonth = postElement.getAttribute('data-yearmonth')
+
+          setCurrentYearMonth(currentYearMonth)
         }
       })
     }, 300),
@@ -62,15 +69,15 @@ function PostsList({ setCurrentYear, allPostsGroupByYear }: { setCurrentYear: Fu
   return (
     <div ref={postListRef} className="w-3/4 overflow-auto">
       <div className="space-y-6">
-        {Object.keys(allPostsGroupByYear)
+        {Object.keys(allPostsGroupByYearMonth)
           .sort((a, b) => +b - +a)
-          .map(year => (
-            <div className="post-list" key={year} data-year={year}>
-              <h3 className="flex items-center text-xl mb-4 pl-2">
+          .map(yearMonth => (
+            <div className="post-list" key={yearMonth} data-yearmonth={yearMonth}>
+              <h3 id={yearMonth} className="flex items-center text-xl mb-4 pl-2">
                 <Icon name="calendar" className="w-6 h-6"></Icon>
-                <span className="ml-2 text-secondary font-bold">{year}</span>
+                <span className="ml-2 text-secondary font-bold">{yearMonth}</span>
               </h3>
-              {allPostsGroupByYear[year]
+              {allPostsGroupByYearMonth[yearMonth]
                 .sort((a: any, b: any) => b.date - a.date)
                 .map((item: any, index: any) => (
                   <div key={index} className="overflow-hidden">
@@ -100,22 +107,23 @@ export default function SiteArchives({ tag }: { tag?: string }) {
     .map(item => ({
       title: item.title,
       year: getYear(item.date),
+      'year-month': getYearMonth(item.date),
       url: item.url,
       date: new Date(item.date).getTime(),
     }))
-    .sort((a, b) => b.year - a.year)
+    .sort((a, b) => sortYearMonth(a['year-month'], b['year-month']))
 
-  const allPostsGroupByYear = groupBy(posts, 'year')
+  const allPostsGroupByYearMonth = groupBy(posts, 'year-month')
 
-  const years = Array.from(new Set(posts.map(item => item.year))).sort((a, b) => b - a)
+  const yearMonths = Array.from(new Set(posts.map(item => item['year-month']))).sort(sortYearMonth)
 
-  const [currentYear, setCurrentYear] = useState(years[0])
+  const [currentYearMonth, setCurrentYearMonth] = useState(yearMonths[0])
 
   return (
     <div className="relative flex mt-8">
-      <SiteTimeLine currentYear={currentYear} years={years} />
+      <SiteTimeLine currentYearMonth={currentYearMonth} yearMonths={yearMonths} />
 
-      <PostsList setCurrentYear={setCurrentYear} allPostsGroupByYear={allPostsGroupByYear} />
+      <PostsList setCurrentYearMonth={setCurrentYearMonth} allPostsGroupByYearMonth={allPostsGroupByYearMonth} />
     </div>
   )
 }
