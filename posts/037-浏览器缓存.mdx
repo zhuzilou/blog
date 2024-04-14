@@ -1,6 +1,7 @@
 ---
 title: 浏览器缓存
 date: 2024/04/07 16:20:14
+update: 2024/04/14 23:20:14
 tag: 浏览器,面试题,网络
 description: 本文介绍了浏览器的强缓存和协商缓存，以及示例demo代码。
 ---
@@ -17,22 +18,55 @@ description: 本文介绍了浏览器的强缓存和协商缓存，以及示例d
 
 强缓存会给缓存文件设置一个过期时间，未到过期时间，用户访问资源将始终访问浏览器缓存的文件，不会向服务器发送请求。如果过期了会重新请求文件，并更新强缓存。
 
-强缓存是使用Expires和Cache-Control这两个响应头来控制的
+强缓存是使用 Expires 和 Cache-Control 这两个响应头来控制的
 
 `Expires`
 
-- expires设置一个GMT格式的字符串，超过时间则认为缓存过期
-- 如果客户端和服务端的时间不同步，那么缓存会不在预期中触发，因此一般使用Cache-Control
+- expires 设置一个 GMT 格式的字符串，超过时间则认为缓存过期
+- 如果客户端和服务端的时间不同步，那么缓存会不在预期中触发，因此一般使用 Cache-Control
 
 `Cache-Control`
 
-- Cache-Control设置一个max-age=xx的键值对，xx为过期的秒数
-- xxs内请求资源都会走本地缓存，不会请求服务端
-- 
+- Cache-Control 设置一个 max-age=xx 的键值对，xx 为过期的秒数
+- xx 秒内请求资源都会走本地缓存，不会请求服务端
+
+```js
+async powerCache(ctx, next) {
+  const res = ctx.fileData
+  ctx.set('content-type', 'text/html; charset=utf-8')
+  ctx.set('Cache-Control', 'max-age=8') //设置强缓存，过期时间为8秒
+  ctx.body = res
+}
+```
 
 ## 协商缓存
 
-协商缓存会给缓存文件设置一个标识，每次请求文件都会携带标识去请求服务器，如果标识相同，即文件未修改，返回304状态码；如果标识不同，即文件被修改过了，重新发送资源给浏览器，并更新协商缓存。
+协商缓存会给缓存文件设置一个标识，每次请求文件都会携带标识去请求服务器，如果标识相同，即文件未修改，返回 304 状态码；如果标识不同，即文件被修改过了，重新发送资源给浏览器，并更新协商缓存。
+
+`Etag` & `If-None-Match`
+- 服务器在响应头中设置 `Etag`，浏览器在请求头中设置 `If-None-Match`，如果 Etag 和 If-None-Match 相同，则返回 304 状态码，表示缓存未过期，浏览器直接使用本地缓存。
+- 如果 Etag 和 If-None-Match 不同，则返回 200 状态码，表示缓存过期，浏览器重新请求资源，并更新协商缓存。
+
+`last-modified` & `If-Modified-Since`
+- 服务器在响应头中发送 Last-Modified 字段，表示资源的最后修改时间。客户端下次请求时会在请求头中发送 If-Modified-Since 字段，如果资源的最后修改时间与客户端发送的时间相同或更晚，服务器会返回状态码 304 Not Modified，告诉客户端可以使用缓存。
+
+### `last-modified` & `If-Modified-Since`的示例
+``` js
+async chatCache(ctx, next) {
+  const res = ctx.fileData
+  const status = ctx.fileStatus
+  const ifModifiedSince = ctx.request.header['if-modified-since']
+  if (ifModifiedSince && ifModifiedSince === status.mtime.toGMTString()) {
+    ctx.status = 304
+    return
+  }
+  ctx.set('content-type', 'text/html; charset=utf-8')
+  ctx.set('Last-Modified', status.mtime.toGMTString())
+  ctx.body = res
+}
+```
+
+和强缓存的区别是，协商缓存要在服务端实现一套对比请求头的逻辑，然后返回给浏览器是否要更新缓存。
 
 ## 强缓存和协商缓存的区别和使用场景
 
@@ -57,5 +91,25 @@ description: 本文介绍了浏览器的强缓存和协商缓存，以及示例d
 
 ## 示例代码
 
-[zhangwh754/browser-cache-server: 浏览器缓存，强缓存以及协商缓存的实践。后端为koa (github.com)](https://github.com/zhangwh754/browser-cache-server)
+[zhangwh754/browser-cache-server: 浏览器缓存，强缓存以及协商缓存的实践。后端为 koa (github.com)](https://github.com/zhangwh754/browser-cache-server)
 
+## 测试时不触发缓存的原因及解决方式
+
+现在浏览器 f5 刷新时将不会触发缓存，因此想要测试需要
+
+1. 在一个新窗口提前打开控制台，输入 url 后可以看到触发了缓存
+2. 返回的文件中有指向自身的超链接
+
+```txt
+hello world
+
+good morning
+
+<hr/>
+
+<a href="http://localhost:8000/cache/power">强缓存：</a>
+
+<hr/>
+
+<a href="http://localhost:8000/cache/chat">协商缓存：</a>
+```
