@@ -1,0 +1,93 @@
+---
+title: Web Component 的概念和基本使用
+date: 2024/04/15 09:15:54
+tag: html,html5
+description: Web Component 的概念和基本使用
+---
+
+## 序言
+
+Web Component 是一个允许创建可复用组件的 API。
+
+Web Component 由如下三个技术组成
+
+- **Custom element（自定义元素）**：一组 JavaScript API，允许你定义 custom elements 及其行为，然后可以在你的用户界面中按照需要使用它们。
+- **Shadow DOM（影子 DOM）**：一组 JavaScript API，用于将封装的“影子”DOM 树附加到元素（与主文档 DOM 分开呈现）并控制其关联的功能。通过这种方式，你可以保持元素的功能私有，这样它们就可以被脚本化和样式化，而不用担心与文档的其他部分发生冲突。
+- **HTML template（HTML 模板）：** 使用 template 和 slot 元素使你可以编写不在呈现页面中显示的标记模板。然后它们可以作为自定义元素结构的基础被多次重用。
+
+## Web Component 的基本构造方法
+
+1. 通过 ES6 Class 类，继承 HTMLElement 类，注意继承要用 super
+2. constructor 构造函数内部，使用 this.attachShadow(\{ "mode": "open" })函数。可以创建一个 shadom dom。
+3. 往 shadom dom 添加元素使用 appendChild 函数
+4. 类外部使用 customElements.define("my-button", MyButton)，即可构建一个基本的 web components
+
+## template和slot
+### template
+比起直接在web Component内部添加元素，使用 template元素，可以编写不在呈现页面中显示的标记模板。然后它们也可以作为自定义元素结构的基础被多次重用。
+``` html
+<template id="my-button">
+  <link rel="stylesheet" href="style.css">
+  <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    <slot>
+      <span>btnClick</span>
+    </slot>
+  </button>
+</template>
+```
+第七行第八行为用dom获取模板内容，之后正常添加模板内容到shadow dom中去即可。
+```js showLineNumbers {7,8}
+class MyButton extends HTMLElement {
+  constructor() {
+    super();
+
+    var shadow = this.attachShadow({ mode: "open" });
+
+    const template = document.getElementById("my-button");
+    const content = template.content.cloneNode(true);
+
+    content.querySelector("button").addEventListener("click", () => {
+      this.dispatchEvent(new CustomEvent("myButtonClick", { bubbles: true }));
+    });
+
+    shadow.appendChild(content);
+  }
+}
+```
+
+### 插槽和具名插槽
+组件可以使用默认插槽 slot。此时给自定义的元素内部传入内容，会顶替掉 slot 默认插槽的内容（和 Vue 相同）
+
+```js
+wrapper.innerHTML = `<slot><span>btnClick</span></slot>`
+```
+
+具名插槽，可以给 slot 组件添加名字，然后给传入的替换内容，通过 slot 属性指定名字，就可以实现插槽的复用
+
+```js
+// web components
+<button>
+  <slot name="element-name"></slot>
+  <slot name="element-age"></slot>
+  <slot name="element-email"></slot>
+</button>
+```
+
+```js
+// 使用web components
+<my-button>
+  <span slot="element-name">张三</span>
+  <span slot="element-age">18</span>
+  <span slot="element-email">zhangsan@163.com</span>
+</my-button>
+```
+
+## 示例代码
+
+[codepen 在线代码：web components](https://codepen.io/zhangwh754/pen/oNOMPvG)
+[github](https://github.com/zhangwh754/web-components-demos)
+
+## 参考
+
+- [MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/Web_components)
+- [2024，你还未掌握 Web Components 吗？](https://juejin.cn/post/7350502488493867042?searchId=2024041309472230C690E47A47CB5EF2AC)
