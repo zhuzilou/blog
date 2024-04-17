@@ -1,0 +1,85 @@
+---
+title: 客户端图片类型转换
+date: 2024/04/17 09:33:44
+tag: js,html
+description: base64、文件流、File对象等的互相转换
+---
+
+## 文件流转换 base64
+
+```js
+const url = `https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/quality/100`
+const response = await axios.get(url, { responseType: 'arraybuffer' })
+
+const blob = new Blob([response.data], { type: 'image/jpeg' })
+
+const reader = new FileReader()
+
+reader.readAsDataURL(blob)
+
+reader.onload = () => {
+  const base64Data = reader.result
+  console.log(base64Data) // 这里是转换后的 base64 数据
+}
+```
+
+## base64 转 blob Url
+
+```js
+convertBase64(base64Str) {
+  const binaryImageData = atob(base64Str.replace(/^data:image\/\w+;base64,/, ''))
+
+  const arrayBuffer = new ArrayBuffer(binaryImageData.length)
+  const uint8Array = new Uint8Array(arrayBuffer)
+  for (let i = 0; i < binaryImageData.length; i++) {
+    uint8Array[i] = binaryImageData.charCodeAt(i)
+  }
+
+  const blob = new Blob([uint8Array], { type: 'image/jpeg' })
+
+  const imageUrl = URL.createObjectURL(blob)
+
+  return imageUrl
+}
+```
+
+## input[type=file]转换为 base64
+
+可以每次 change 把 input 标签的值清空，可以让 change 回调一定会触发
+
+```js
+var fileInput = document.getElementById('fileItem')
+fileInput.addEventListener('change', function (event) {
+  var selectedFile = event.target.files[0]
+  if (selectedFile) {
+    var reader = new FileReader()
+
+    reader.onload = function (loadEvent) {
+      // 截取文件base64
+      var base64Data = loadEvent.target.result.split(',')[1]
+
+      // 获取文件大小
+      var fileSize = selectedFile.size
+      var name = selectedFile.name
+
+      var data = {
+        base64Data: base64Data,
+        fileSize: fileSize,
+        name: name,
+      }
+    }
+
+    reader.readAsDataURL(selectedFile)
+  }
+})
+```
+
+## input[type=file]转换为 FormData
+
+```js
+const fileInput = document.getElementById('fileInput')
+const file = fileInput.files[0] // Get the first file selected by the user
+
+const formData = new FormData()
+formData.append('file', file)
+```
