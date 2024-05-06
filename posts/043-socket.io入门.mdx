@@ -1,0 +1,48 @@
+---
+title: socket.io入门
+date: 2024/05/06 20:32:48
+tag: socket
+description: socket入门
+---
+
+## 基础概念
+
+传统的 http 是单向的请求响应协议，客户端主动发送请求获取服务端的资源，并且每次请求需要重新建立连接。持续获取资源需要轮询，效率低。
+
+而 socket.io 是双向的，客户端与服务端通过 socket 连接，可以持续的进行数据传输。
+
+## websocket 和 socket.io
+
+websocket 是`tcp协议`，是双向的，可以持续的进行数据传输。
+
+而 socket.io 是基于`websocket协议`的封装库。
+
+即 websocket 是 socket.io 的底层，socket.io 是 websocket 的封装，提供了更便捷的 api，一般来说，使用 socket.io。
+
+## socket.io 的使用
+
+其中第三行的3000，是后端服务的端口号
+
+```js showLineNumbers {3}
+// import { io } from 'socket.io'
+import { io } from 'https://cdn.socket.io/4.7.4/socket.io.esm.min.js'
+
+const socket = io('ws://localhost:3000') //ws的地址
+```
+
+socket.io是基于事件驱动的，类似于eventBus的使用，有emit、on两个方法，emit是发送事件，on是监听事件。
+
+```js showLineNumbers
+// 发送事件给服务端
+socket.emit('eventName', data)
+
+// 监听来自服务端的事件
+socket.on('eventName', (data) => {
+  console.log(data)
+})
+```
+
+## 参考
+1.[socket.io](https://github.com/socketio/socket.io)
+1.[小满zs：socket.io](https://juejin.cn/post/7345071341483491380?searchId=20240506203215C935A80FAEE7A61F6240)
+
