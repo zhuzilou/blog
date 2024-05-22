@@ -230,3 +230,64 @@ history 10
 history -c
 ```
 
+## docker入门
+
+### 安装docker
+
+```bash
+# 安装docker必要组件
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+# jq用于编译配置信息格式化输出
+yum install -y jq
+
+# yum添加docker源的地址
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 查看docker版本列表
+yum list docker-ce --showduplicates | sort -r
+
+# 安装docker
+yum install -y docker-ce.x86_64
+
+# 指定版本
+# yum install -y docker-ce.x86_64 3:20.10.16-3.el7
+
+# 安装完成后，启动docker服务
+systemctl start docker.service
+
+# docker版本号
+docker version
+```
+
+### docker配置
+
+用vi编辑器编辑
+
+```bash
+# i开始编辑 esc退出编辑模式 ZZ退出编辑器
+vi /etc/docker/daemon.json
+
+# daemon添加，阿里用户ID是纯数字，不包含签名的字母和@
+{
+   "registry-mirrors":["https://[阿里用户ID].mirror.aliyuncs.com"]
+}
+
+# 配置完成后，重启docker
+systemctl restart docker.service
+
+# 设置docker自动启动
+systemctl enable docker.service
+```
+
+### docker拉取镜像
+
+```bash
+# docker run
+# 如果本地不存在hello-world镜像，会自动下载并创建容器
+docker run hello-world
+
+# 搜索并拉取
+docker search [imageName]
+docker pull [imageName:versionName]
+```
