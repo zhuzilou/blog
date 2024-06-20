@@ -1,6 +1,7 @@
 ---
 title: js验证全天时间选择
 date: 2024/06/06 09:21:15
+update: 2024/06/20 09:21:15
 tag: 代码片段,js
 description: 用JavaScript验证全天时间是否都被选择，并且没有重叠(00:00-23:59)
 ---
@@ -11,14 +12,14 @@ description: 用JavaScript验证全天时间是否都被选择，并且没有重
 const periods = {
   time1: ["00:00-12:00", "18:00-23:00"],
   time2: ["12:00-18:00"],
-  time3: ["23:00-23:59"],
+  time3: ["23:00-24:00"],
   time4: [],
 };
 ```
 
 ## 代码
 1. 把小时:分钟转为分钟数，然后从小到大排序
-2. 开始分钟为0，结束分钟为24*60-1
+2. 开始分钟为0，结束分钟为24*60
 3. 遍历排序后的分钟数，获取start minute和end minute
 4. 如果上一段的end比下一段的start大，则说明有重叠，返回false
 5. 校验都通过，证明全天都被选择，返回true
@@ -77,9 +78,9 @@ const usePeriodValidate = (periods) => {
   }
 
   /**
-   * @description: 如果不是以00:00-23:59结束，则校验失败
+   * @description: 如果不是以00:00-24:00结束，则校验失败
    */
-  if (lastEnd !== 24 * 60 - 1) {
+  if (lastEnd !== 24 * 60) {
     console.error("时间段未覆盖24小时");
     isCovered = false;
   }
@@ -94,7 +95,7 @@ const usePeriodValidate = (periods) => {
 const periods = {
   time1: ["00:00-12:00", "18:00-23:00"],
   time2: ["12:00-18:00"],
-  time3: ["23:00-23:59"],
+  time3: ["23:00-24:00"],
   time4: [],
 };
 
