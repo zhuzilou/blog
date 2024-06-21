@@ -1,0 +1,44 @@
+---
+title: h5接受服务端返回的语音并播放
+date: 2024/06/21 14:44:28
+tag: html5,js
+description: 使用Howl库，接受服务端返回的文件流，转换为音频并播放
+---
+
+## 代码
+
+```js
+import { Howl } from 'howler'
+
+var sound = {} // 存放音频对象
+
+$.ajax({
+  url: 'your_request_url', // 替换为服务器返回WAV文件的路径
+  data: JSON.stringify({
+    /** ... */
+  }),
+  contentType: 'application/json',
+  type: 'POST',
+  xhrFields: {
+    responseType: 'arraybuffer',
+  },
+  success: function (data) {
+    dom.removeClass('loading')
+
+    var blob = new Blob([data], { type: 'audio/wav' })
+    var url = URL.createObjectURL(blob)
+
+    sound[questionNo] = new Howl({
+      src: [url],
+      format: ['wav'],
+    })
+
+    sound[questionNo].play()
+  },
+  error: function (error) {
+    layer.msg('播放语音失败')
+
+    console.log('error', error)
+  },
+})
+```
