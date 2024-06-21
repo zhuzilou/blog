@@ -1,0 +1,93 @@
+---
+title: echarts根据数据类型自定义X轴背景色或背景图
+date: 2024/06/20 09:29:05
+tag: echarts
+description: 根据传入的data类型，使用rich富文本样式的标签，动态设置每项数据的背景颜色
+---
+
+## 效果
+
+![效果浏览](https://qiniu.djdg626.com/20240620093140.png)
+
+## 代码
+
+```js
+const weatherIcons = {
+  Sunny: 'https://echarts.apache.org/examples/data/asset/img/weather/sunny_128.png',
+  Cloudy: 'https://echarts.apache.org/examples/data/asset/img/weather/cloudy_128.png',
+  Showers: 'https://echarts.apache.org/examples/data/asset/img/weather/showers_128.png',
+}
+
+var data = [
+  { value: 120, type: 'Sunny' },
+  { value: 200, type: 'Cloudy' },
+  { value: 150, type: 'Sunny' },
+  { value: 80, type: 'Showers' },
+  { value: 70, type: 'Cloudy' },
+  { value: 110, type: 'Sunny' },
+  { value: 130, type: 'Showers' },
+]
+
+var xAxisData = data.map(item => item.type)
+var seriesData = data.map(item => item.value)
+
+var option = {
+  grid: {
+    left: '10%',
+    right: '10%',
+    top: '10%',
+    bottom: '10%',
+  },
+  xAxis: {
+    type: 'category',
+    data: xAxisData2,
+    axisLabel: {
+      padding: [10, 10, 10, 10],
+      color: '#fff',
+      formatter: function (value, index) {
+        var type = data[index].type
+        return '{' + type + '| }\n{value|' + value + '}'
+      },
+      rich: {
+        value: {
+          lineHeight: 30,
+          align: 'center',
+        },
+        Sunny: {
+          height: 40,
+          width: 40,
+          align: 'center',
+          backgroundColor: {
+            image: weatherIcons.Sunny,
+          },
+        },
+        Cloudy: {
+          height: 40,
+          width: 40,
+          align: 'center',
+          backgroundColor: {
+            image: weatherIcons.Cloudy,
+          },
+        },
+        Showers: {
+          height: 40,
+          width: 40,
+          align: 'center',
+          backgroundColor: {
+            image: weatherIcons.Showers,
+          },
+        },
+      },
+    },
+  },
+  yAxis: {
+    type: 'value',
+  },
+  series: [
+    {
+      data: seriesData,
+      type: 'bar',
+    },
+  ],
+}
+```
