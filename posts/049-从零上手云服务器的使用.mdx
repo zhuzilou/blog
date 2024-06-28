@@ -110,3 +110,30 @@ http {
     }
 }
 ```
+
+### nginx+certbot配置https
+
+见certbot官网使用文档，选择对应的系统和网页部署软件，参照文档
+
+[Certbot Instructions | Certbot (eff.org)](https://certbot.eff.org/instructions?ws=nginx&os=centosrhel7&tab=standard)
+
+Nginx+centos7
+
+1. Install snapd
+2. [optional]如果已安装certbot，需要先remove移除
+3. 安装certbot
+4. 给certbot 创建软链接
+5. nginx配置文件，配置server.server_name为要绑定https的域名
+6. 域名解析商添加ipv4的解析
+7. 使用命令配置certbot：sudo certbot --nginx
+8. 使用命令查看自动更新证书是否成功
+
+```bash
+sudo certbot renew --dry-run
+```
+
+![image-20240628103644176](https://qiniu.djdg626.com/image-20240628103644176.png)
+
+9. 打开对应网页，已自动开启https，默认有效期3个月。
+
+![image-20240628103743199](https://qiniu.djdg626.com/image-20240628103743199.png)
