@@ -14,7 +14,7 @@ description: 618新购买了京东云的一个轻量云服务器用作开发测�
 
 ![连接成功](https://qiniu.djdg626.com/20240625232225.png)
 
-### 安装nginx
+## 安装nginx
 
 安装基本环境
 
@@ -137,3 +137,27 @@ sudo certbot renew --dry-run
 9. 打开对应网页，已自动开启https，默认有效期3个月。
 
 ![image-20240628103743199](https://qiniu.djdg626.com/image-20240628103743199.png)
+
+## 安装Docker
+
+[官网文档](https://docs.docker.com/engine/install/centos/#uninstall-docker-engine)
+
+其中
+```bash
+# 国内无法直连，所以下方命令会失败
+# sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 替代使用阿里的镜像
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+```
+
+
+### Docker安装mysql
+
+1. -e为设置环境变量，即mysql的root用户的登录密码
+2. -d代表docker以分离模式运行，容器在后台运行
+3. -v代表mysql把容器内的数据（/var/lib/mysql）数据存放在前置的目录下，即使mysql容器被删除了，数据也不会丢失
+
+```bash
+docker run -e MYSQL_ROOT_PASSWORD=example_password -d -v /var/lib/mysql:/var/lib/mysql mysql
+```
