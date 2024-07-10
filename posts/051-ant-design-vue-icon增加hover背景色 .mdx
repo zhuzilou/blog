@@ -1,0 +1,25 @@
+---
+title: ant-design-vue-icon增加hover背景色
+date: 2024/07/10 11:06:35
+tag: vue
+---
+
+## 基本
+
+```js
+h(DeleteOutlined, {
+  class: 'delete-icon',
+  style: 'margin-left: 10px;cursor: pointer;',
+  onClick: () => removeDateRange(index, type),
+})
+```
+
+样式穿透+important
+
+```css
+:deep(.delete-icon:hover) {
+  svg {
+    fill: #2471a3 !important;
+  }
+}
+```
