@@ -1,0 +1,29 @@
+---
+title: mysql学习笔记
+date: 2024/07/10 14:44:49
+tag: mysql
+description:
+---
+
+## 3.1.连接和断开
+```
+# 连接
+mysql -u root -p
+
+# 断开
+QUIT
+```
+
+## 3.2.mysql输入查询
+SELECT是mysql的最基本的命令，推荐在每条sql语句末尾都加上分号
+
+长语句即使换行也能被识别，这也是分号的作用
+```
+SELECT VERSION();
+
+# 等效于
+SELECT
+VERSION();
+```
+
+## 3.3.创建使用数据库
