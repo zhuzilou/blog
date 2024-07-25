@@ -1,0 +1,51 @@
+---
+title: centos安装使用minio
+date: 2024/07/25 22:54:56
+tag: minio,centos,对象存储
+description: 
+---
+
+## 基础
+本文介绍了如何在centos下安装使用minio对象存储搭建图床的过程。
+
+见官方文档linux下安装minio的教程：https://min.io/download?license=agpl&platform=linux
+
+```bash
+wget https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod +x minio
+MINIO_ROOT_USER=admin MINIO_ROOT_PASSWORD=password ./minio server /mnt/data --console-address ":9001"
+```
+
+1. 其中wget为下载软件包
+2. chmod +x为配置该文件为可执行文件
+3. MINIO_ROOT_USER MINIO_ROOT_PASSWORD为设置账号密码
+4. ./minio server为启动
+5. /mnt/data为数据存储目录
+6. --console-address ":9001"为启动端口
+
+## 自动启动minio
+用上述命令启动minio一旦退出终端就会自动停止minio服务
+
+那么可以利用systemd来自动启动minio
+
+1. 创建 Minio 服务文件：
+创建/etc/systemd/system/minio.service文件
+```
+[Unit]
+Description=Minio Object Storage
+After=network.target
+[Service]
+Type=simple
+ExecStart=/usr/local/minio/minio server /mnt/data --console-address ":9001"
+Environment=MINIO_ACCESS_KEY=admin
+Environment=MINIO_SECRET_KEY=password
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+```
+
+2. 设置 Minio 服务为开机自启：`sudo systemctl enable minio`
+3. 启动/停止Minio服务： `sudo systemctl start mini/sudo systemctl stop mini`
+4. 访问[ip]:9001即可
+
+## minio的使用
