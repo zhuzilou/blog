@@ -2,7 +2,7 @@
 title: centos安装使用minio
 date: 2024/07/25 22:54:56
 tag: minio,centos,对象存储
-description: 
+description:
 ---
 
 ## 基础
@@ -20,7 +20,7 @@ MINIO_ROOT_USER=admin MINIO_ROOT_PASSWORD=password ./minio server /mnt/data --co
 2. chmod +x为配置该文件为可执行文件
 3. MINIO_ROOT_USER MINIO_ROOT_PASSWORD为设置账号密码
 4. ./minio server为启动
-5. /mnt/data为数据存储目录
+5. mnt/data为数据存储目录
 6. --console-address ":9001"为启动端口
 
 ## 自动启动minio
@@ -36,9 +36,9 @@ Description=Minio Object Storage
 After=network.target
 [Service]
 Type=simple
-ExecStart=/usr/local/minio/minio server /mnt/data --console-address ":9001"
+ExecStart=/usr/local/minio/minio server /usr/local/minio/mnt/data --console-address ":9001"
 Environment=MINIO_ACCESS_KEY=admin
-Environment=MINIO_SECRET_KEY=password
+Environment=MINIO_SECRET_KEY=[replace with true password]
 Restart=on-failure
 [Install]
 WantedBy=multi-user.target
@@ -49,3 +49,6 @@ WantedBy=multi-user.target
 4. 访问[ip]:9001即可
 
 ## minio的使用
+1. 控制台登录后，新建一个存储桶，并设置一个新的accessKey
+2. picGo设置
+4. 配置域名解析，使用certbot+nginx配置https
