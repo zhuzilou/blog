@@ -30,6 +30,7 @@ MINIO_ROOT_USER=admin MINIO_ROOT_PASSWORD=password ./minio server /mnt/data --co
 
 1. 创建 Minio 服务文件：
 创建/etc/systemd/system/minio.service文件
+2. 注意环境变量必须配置MINIO_SERVER_URL和MINIO_BROWSER_REDIRECT_URL，为代理的api和console的域名
 ```
 [Unit]
 Description=Minio Object Storage
@@ -39,16 +40,94 @@ Type=simple
 ExecStart=/usr/local/minio/minio server /usr/local/minio/mnt/data --console-address ":9001"
 Environment=MINIO_ACCESS_KEY=admin
 Environment=MINIO_SECRET_KEY=[replace with true password]
+Environment=MINIO_SERVER_URL=https://images.djdg626.com
+Environment=MINIO_BROWSER_REDIRECT_URL=https://images.djdg626.com/console
 Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
 
 2. 设置 Minio 服务为开机自启：`sudo systemctl enable minio`
-3. 启动/停止Minio服务： `sudo systemctl start mini/sudo systemctl stop mini`
+3. 启动/停止Minio服务： `sudo systemctl start minio/sudo systemctl stop minio`
 4. 访问[ip]:9001即可
 
 ## minio的使用
 1. 控制台登录后，新建一个存储桶，并设置一个新的accessKey
 2. picGo设置
 4. 配置域名解析，使用certbot+nginx配置https
+
+```nginx
+server {
+  server_name images.djdg626.com;
+
+  # Allow special characters in headers
+  ignore_invalid_headers off;
+  # Allow any size file to be uploaded.
+  # Set to a value such as 1000m; to restrict file size to a specific value
+  client_max_body_size 0;
+  # Disable buffering
+  proxy_buffering off;
+  proxy_request_buffering off;
+
+
+  location / {
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    proxy_connect_timeout 300;
+    # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    chunked_transfer_encoding off;
+
+    proxy_pass http://[ip]:9000; # This uses the upstream directive definition to load balance
+  }
+
+  location /console/ {
+    rewrite ^/console/(.*) /$1 break;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-NginX-Proxy true;
+
+    # This is necessary to pass the correct IP to be hashed
+    real_ip_header X-Real-IP;
+
+    proxy_connect_timeout 300;
+
+    # To support websockets in MinIO versions released after January 2023
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    # Some environments may encounter CORS errors (Kubernetes + Nginx Ingress)
+    # Uncomment the following line to set the Origin request to an empty string
+    # proxy_set_header Origin '';
+
+    chunked_transfer_encoding off;
+
+    proxy_pass http://[ip]:9001; # This uses the upstream directive definition to load balance
+  }
+
+  listen 443 ssl; # managed by Certbot
+  ssl_certificate /etc/letsencrypt/live/images.djdg626.com/fullchain.pem; # managed by Certbot
+  ssl_certificate_key /etc/letsencrypt/live/images.djdg626.com/privkey.pem; # managed by Certbot
+  include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+  if ($host = images.djdg626.com) {
+    return 301 https://$host$request_uri;
+  } # managed by Certbot
+
+
+  server_name images.djdg626.com;
+  listen 80;
+  return 404; # managed by Certbot
+}
+
+```
