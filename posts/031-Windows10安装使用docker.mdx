@@ -36,13 +36,13 @@ wsl --set-version 2
 
    - ```cmd
      pushd "%~dp0"
-      
+
      dir /b %SystemRoot%\servicing\Packages\*Hyper-V*.mum >hyper-v.txt
-      
+
      for /f %%i in ('findstr /i . hyper-v.txt 2^>nul') do dism /online /norestart /add-package:"%SystemRoot%\servicing\Packages\%%i"
-      
+
      del hyper-v.txt
-      
+
      Dism /online /enable-feature /featurename:Microsoft-Hyper-V-All /LimitAccess /ALL
      ```
 
@@ -63,7 +63,7 @@ wsl --set-version 2
 
 可远程调试
 
-![image-20240305152336507](https://qiniu.djdg626.com/image-20240305152336507.png)
+![image-20240305152336507](https://images.djdg626.com/images/image-20240305152336507.png)
 
 ```dockerfile
 docker run -d --restart=always -p 6752:6752 --name="pageSpy" ghcr.io/huolalatech/page-spy-web:latest
