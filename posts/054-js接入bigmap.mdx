@@ -1,0 +1,222 @@
+---
+title: js接入bigmap
+date: 2024/08/06 22:56:37
+tag: 地图
+description:
+---
+
+## 前提
+
+根据公司需要，需要把使用的互联网地图切换为离线部署的 bigmap。
+
+在下文中记录使用的步骤。
+
+## 引入
+
+bigmap 提供了一个引入 js 和 css 的 promise 方法，await 等待加载完成即可。
+
+也可以使用 load-script
+
+```js
+//map.js
+// 换成本地的服务器js文件即可
+let script = ['http://192.168.1.6:9000/bigemap.js/v2.1.0/bigemap.js']
+export default new Promise(resolve => {
+  let link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.async = false
+  // 换成本地的服务器css文件即可
+  link.href = 'http://192.168.1.6:9000/bigemap.js/v2.1.0/bigemap.css'
+  document.head.appendChild(link)
+
+  let loads = script.map(v => {
+    let script = document.createElement('script')
+    script.src = v
+    document.head.appendChild(script)
+    return script
+  })
+  let end = loads.pop()
+  end.onload = resolve
+})
+```
+
+### 使用 draw（绘图）插件
+
+如果需要用到 draw 插件，需要从官网下载 draw 插件的 js 和 css 并引入
+
+js 在 bigmap.js 引入后引入即可
+
+css 直接在 main.js 引入即可
+
+```js
+import load from 'load-script'
+
+load('/bm.draw.min.js')
+```
+
+## 地图方法封装
+
+### 初始化
+
+注意 bigmap 需要在 BM.map 函数中传入需要使用的地图的 id，从 bigmap 后台获取
+
+```js
+/**
+ * @description: 初始化地图
+ */
+export const initMap = async () => {
+  await maps.catch(err => {
+    console.log('err', err)
+  })
+  load('/bm.draw.min.js')
+  const BM = window.BM
+  BM.Config.HTTP_URL = 'http://192.168.1.6:9000'
+  // 在ID为map的元素中实例化一个地图，并设置地图的ID号为 bigemap.googlemap-streets，ID号程序自动生成，无需手动配置，并设置地图的投影为百度地图 ，中心点，默认的级别和显示级别控件
+  map = BM.map('map', 'bigemap.04h7haef', {
+    crs: BM.CRS.EPSG4326,
+    center: [31.3772, 121.2877],
+    zoom: 10,
+    zoomControl: true,
+  })
+  // addMarker(map, [31.3772, 121.2877], 3)
+  return { BM, map }
+}
+```
+
+### 添加 marker
+
+1. addMarker 为封装的添加 marker 回调函数
+2. 如果需要点击弹出自定义蒙层，可以添加一个 callback 回调函数，基于 bigmap 的写法给回调传递了 marker 自身和 location
+
+```js
+/**
+ * @description: 根据经纬度添加marker
+ * @param {*} map 地图实例
+ * @param {*} location 经纬度
+ * @param {*} callback 点击回调
+ */
+export const addMarker = (map, location, callback) => {
+  if (typeof type == 'undefined') throw `type必须传递`
+
+  const marker = BM.marker(location, {
+    // icon: getIcon(type),
+  }).addTo(map)
+
+  if (typeof callback == 'function') {
+    marker.bindPopup(``)
+
+    marker.on('click', function (e) {
+      callback(marker, location)
+    })
+  }
+
+  return marker
+}
+```
+
+### 添加多边形
+
+```js
+/**
+ * @description: 地图上添加一个多边形覆盖
+ * @param {*} map
+ * @param {{ lat: Number, lng: Number }[]} locations
+ */
+export const addMapBound = (map, locations) => {
+  var polygon = BM.polygon(locations).addTo(map)
+  map.fitBounds(polygon.getBounds())
+  return polygon
+}
+```
+
+## 自定义弹窗
+
+类似于之前的天地图，进行了部分改造，还是使用 Vue.extend 函数，把 Vue 组件挂载在自定义 Dom 上
+
+```js
+const marker = addMarker(map, location, 2, marker => {
+  marker.setPopupContent(`<div id="map_position_control"></div>`).openPopup()
+
+  if (this.newInstance) {
+    this.newInstance.$destroy()
+  }
+
+  // ExtendLayout3是提前声明的利用Vue.extend创建的vue组件，
+  this.newInstance = new ExtendLayout3({
+    el: '#map_position_control',
+    propsData: {
+      msgObj: data, // 传递的props
+    },
+  })
+
+  this.newInstance.$on('自定义事件名称', () => {
+    // 自定义事件回调
+  })
+})
+```
+
+## bigmap 地图标绘
+
+文档位置比较隐蔽，在完整项目 DEMO 源码=>插件=>鼠标绘制
+
+[鼠标绘制](http://www.bigemap.com/offlinemaps/demo/mouse_draw.html)
+
+1. 第一步必须引入 css 和 js
+2. 第二步需要额外声明一个图层
+3. map.addControl(drawControl)可以把绘图控件添加到地图上, map.removeControl 可以去除
+4. `疑似必须监听完成事件？`否则好像完成后绘制的线、面、点不会显示?
+5. 绑定自定义弹窗不适用bigmap提供的直接使用bindPopup后添加，而是在bindPopup后的click点击回调中添加，否则会找不到dom函数，应该是点击时才会实例化弹窗，与addMarker的不同。
+
+```js showLineNumbers {12,31}
+BM.Config.HTTP_URL = 'http://www.bigemap.com:9000'
+// 在ID为map的元素中实例化一个地图，并设置地图的ID号为 bigemap.zhongkexingtu，ID号程序自动生成，无需手动配置，并设置地图的投影为百度地图 ，中心点，默认的级别和显示级别控件
+var map = BM.map('map', 'bigemap.zhongkexingtu', {
+  center: [30, 104],
+  zoom: 8,
+  zoomControl: true,
+  attributionControl: false,
+})
+//创建一个图形覆盖物的集合来保存点线面
+var drawnItems = new BM.FeatureGroup()
+//添加在地图上
+map.addLayer(drawnItems)
+//实例化鼠标绘制的控件
+var drawControl = new BM.Control.Draw({
+  position: 'topright', //位置
+  //控制绘制的图形
+  draw: {
+    polyline: {
+      //单独设置线的颜色为红色，其它为默认颜色
+      shapeOptions: {
+        color: 'red',
+      },
+    },
+    polygon: true,
+    circle: true,
+    marker: true,
+  },
+  edit: { featureGroup: drawnItems },
+})
+
+map.addControl(drawControl)
+//监听绘画完成事件
+map.on(BM.Draw.Event.CREATED, function (e) {
+  var type = e.layerType,
+    layer = e.layer
+  if (type === 'marker') {
+    //如果是标注，实现一个点击出现的提示
+    // layer.bindPopup('A popup!')
+
+    layer
+      .bindPopup('<div id="map_position_control"></div>')
+      .on('click', () => {
+        // 在这里绑定自定义弹窗
+      })
+      .addTo(map)
+  }
+  drawnItems.addLayer(layer)
+})
+```
+
+## 结语
+bigmap文档写的并不好，查询不方便。时间紧张所以篇幅较短，日后有机会再完善。
