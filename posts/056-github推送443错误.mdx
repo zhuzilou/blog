@@ -1,0 +1,18 @@
+---
+title: github推送443错误
+date: 2024/08/18 19:20:12
+tag: git
+description:
+---
+
+## 参考
+
+https://www.cnblogs.com/XuanXiuJie/p/17949399
+
+## 解决
+我的梯子端口号是7897
+
+```
+git config --global http.proxy http://127.0.0.1:7897
+git config --global https.proxy http://127.0.0.1:7897
+```
