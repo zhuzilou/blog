@@ -1,0 +1,163 @@
+---
+title: react useContext和useReducer重温和性能优化
+date: 2024/08/20 23:04:37
+tag: react,hooks
+description: 使用react useContext和useReducer写一个todolist页面
+---
+
+## 标题
+
+`注意事项`
+
+1. reducer 的 state 数据同 useState 一样，是不可变数据，不能直接修改
+2. createContext 和 Context.provider，都要提供初始化值
+3. 不直接在子组件中用 useReducer 获取 state 和 dispatch，而是在根组件使用，通过 context 传递 state 和 dispatch
+
+```tsx
+import React, { ChangeEvent, createContext, FC, useContext, useReducer, useState } from 'react'
+
+type PropTypes = {}
+
+type StateType = {
+  name: string
+  id: number
+}
+
+type ActionType = {
+  type: 'add' | 'remove'
+  payload?: any
+}
+
+const reducer = function (state: StateType[], action: ActionType) {
+  switch (action.type) {
+    case 'add':
+      return state.concat(action.payload)
+    case 'remove':
+      return state.filter(item => item.id != action.payload)
+    default:
+      throw new Error('type is in add or remove')
+  }
+}
+
+const TodoListContext = createContext({
+  state: [] as StateType[],
+  dispatch: (_action: ActionType) => {},
+})
+
+const App: FC<PropTypes> = () => {
+  const [state, dispatch] = useReducer(reducer, [])
+
+  return (
+    <TodoListContext.Provider value={{ state, dispatch }}>
+      <ToDoList></ToDoList>
+      <ToDoInput></ToDoInput>
+    </TodoListContext.Provider>
+  )
+}
+
+const ToDoList: FC<PropTypes> = () => {
+  const { state, dispatch } = useContext(TodoListContext)
+
+  const del = (id: number) => {
+    dispatch({ type: 'remove', payload: id })
+  }
+
+  return (
+    <ul>
+      {state.map(item => (
+        <li
+          style={{
+            width: '100px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+          key={item.id}
+        >
+          <span>{item.name}</span>
+          <button onClick={() => del(item.id)}>删除</button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+const ToDoInput: FC<PropTypes> = () => {
+  const { state, dispatch } = useContext(TodoListContext)
+  const [todo, setTodo] = useState('')
+
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTodo(e.target.value)
+  }
+
+  const onSubmit = (e: ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    dispatch({ type: 'add', payload: { id: state.length, name: todo } })
+
+    setTodo('')
+  }
+
+  return (
+    <>
+      <form onSubmit={onSubmit}>
+        <label htmlFor="input">待办项：</label>
+        <input value={todo} id="input" type="text" onInput={onChange} />
+        <button type="submit">提交 #{state.length + 1}</button>
+      </form>
+    </>
+  )
+}
+
+export default App
+```
+
+## 优化
+
+上述例子中，把 ToDoList、ToDoInput 两个组件包裹在了根组件的 TodoListContext.Provider 下
+
+但是，如果 TodoListContext.Provider 下还包含了别的组件，当 Provider 中的 reducer state 更新时，会引起这些组件不必要的更新
+
+可以看到 TodoListContext.Provider 导致了组件不必要的更新
+
+![](https://images.djdg626.com/images/20240820231120.png)
+
+解决方式是把Context.Provider拆分到另一个组件，用props.children来渲染组件内容
+
+这样当reducer state 更新时，不会影响子组件，子组件作为children而不是React.createElement传递给了Context，也就不会触发更新。
+
+```tsx
+const App: FC<PropTypes> = () => {
+  return (
+    <ContextApp>
+      <ToDoList></ToDoList>
+      <ToDoInput></ToDoInput>
+      <Noon></Noon>
+    </ContextApp>
+  )
+}
+
+const ContextApp = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, [])
+
+  return <TodoListContext.Provider value={{ state, dispatch }}>{children}</TodoListContext.Provider>
+}
+
+const Noon = () => {
+  console.log('Noon组件渲染了')
+
+  return (
+    <>
+      <h2>null</h2>
+    </>
+  )
+}
+```
+
+修改后，空组件只在初始化时渲染了，在 reducer state 更新时没有进行更新
+
+![](https://images.djdg626.com/images/20240820231517.png)
+
+### 参考
+
+[我在工作中写React，学到了什么？性能优化篇](https://juejin.cn/post/6889247428797530126)
