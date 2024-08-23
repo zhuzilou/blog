@@ -1,0 +1,43 @@
+---
+title: 解决微信小程序previewImage api不能预览base64的问题
+date: 2024/08/23 13:47:51
+tag: 微信小程序,base64
+description: 在微信pc端真机下，previewImage不能预览base64图片，通过FileSystemManager存储base64到本地，获取图片本地地址来解决
+---
+
+## 标题
+
+```js
+function previewImg(e) {
+  const url = e.currentTarget.dataset.url
+
+  this.base64src(url, res => {
+    wx.previewImage({
+      current: res,
+      urls: [res],
+    })
+  })
+}
+
+function base64src(base64data, cb) {
+  const FILE_BASE_NAME = 'tmp_base64src' //自定义文件名
+  const [, format, bodyData] = /data:image\/(\w+);base64,(.*)/.exec(base64data) || []
+  if (!format) {
+    return new Error('ERROR_BASE64SRC_PARSE')
+  }
+  const filePath = `${wx.env.USER_DATA_PATH}/${FILE_BASE_NAME}.${format}`
+  const buffer = wx.base64ToArrayBuffer(bodyData)
+  const fsm = wx.getFileSystemManager()
+  fsm.writeFile({
+    filePath,
+    data: buffer,
+    encoding: 'binary',
+    success() {
+      cb(filePath)
+    },
+    fail() {
+      return new Error('ERROR_BASE64SRC_WRITE')
+    },
+  })
+}
+```
