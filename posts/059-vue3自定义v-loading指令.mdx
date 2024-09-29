@@ -1,0 +1,105 @@
+---
+title: vue3自定义v-loading指令
+date: 2024/09/29 20:12:51
+tag: vue3
+description: 通过v-loading指令，给任意dom元素/组件挂载loading遮罩
+---
+
+## v-loading 指令
+
+```js
+import { createApp } from 'vue'
+import Loading from '@/components/Loading/index.vue'
+
+const relativeCls = 'loading-parent--relative'
+
+const loadingDirective = {
+  name: 'loading',
+  mounted(el, binding) {
+    const app = createApp(Loading)
+    const instance = app.mount(document.createElement('div'))
+
+    el.instance = instance
+
+    if (binding.value) {
+      if (typeof binding.value === 'boolean') append(el)
+    }
+  },
+
+  updated(el, binding) {
+    if (binding.value !== binding.oldValue) {
+      if (typeof binding.value === 'boolean') {
+        binding.value ? append(el) : remove(el)
+      }
+    }
+  },
+}
+
+function append(el) {
+  const style = getComputedStyle(el)
+  if (['absolute', 'fixed', 'relative'].indexOf(style.position) === -1) {
+    addClass(el, relativeCls)
+  }
+
+  el.appendChild(el.instance.$el)
+}
+
+function remove(el) {
+  removeClass(el, relativeCls)
+  el.removeChild(el.instance.$el)
+}
+
+export function addClass(el, className) {
+  // 如果当前元素样式列表中没有className
+  if (!el.classList.contains(className)) {
+    el.classList.add(className)
+  }
+}
+
+export function removeClass(el, className) {
+  el.classList.remove(className)
+}
+
+export default loadingDirective
+```
+
+## loading 组件
+
+使用了 vant 的 loading 组件，也可以替换为任意其他自定义 loading 组件
+
+```js
+<script setup></script>
+
+<template>
+  <div class="loading">
+    <van-loading color="#1989fa" />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9;
+  backdrop-filter: blur(1px);
+}
+</style>
+
+```
+
+## 注册 loading 指令
+
+```js
+import { createApp } from 'vue'
+import App from './App.vue'
+
+const app = createApp(App)
+app.directive('loading', loadingDirective)
+```
+
+## 使用效果
+
+![](https://images.djdg626.com/images/%E5%8A%A8%E7%94%BB.gif)
