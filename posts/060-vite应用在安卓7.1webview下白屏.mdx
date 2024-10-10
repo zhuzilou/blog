@@ -1,0 +1,44 @@
+---
+title: vite应用在安卓7.1webview下白屏
+date: 2024/10/10 22:22:24
+tag: vite,webview
+description: vite+vue3应用，在低版本安卓weview下白屏
+---
+
+## 起因
+
+公司的项目需要套壳放置在安卓掌机中，部署后在 chrome 中可以正常访问，但在安卓掌机浏览器中则不行。
+
+起初以为是 vite legacy 设置的版本过高，但设置为 Chrome 5x 版本也不能打开，查阅资料后发现是 vite 在低版本安卓浏览器中缺少 window.globalThis，将 this 赋值即可
+
+## 解决代码
+
+```html
+// index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta
+      name="viewport"
+      content="width=device-width, viewport-fit=cover, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      !(function (t) {
+        function e() {
+          var e = this || self
+          ;(e.globalThis = e), delete t.prototype._T_
+        }
+        'object' != typeof globalThis &&
+          (this ? e() : (t.defineProperty(t.prototype, '_T_', { configurable: !0, get: e }), _T_))
+      })(Object)
+    </script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+```
