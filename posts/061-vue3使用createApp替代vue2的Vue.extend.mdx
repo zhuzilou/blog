@@ -1,0 +1,34 @@
+---
+title: vue3使用createApp替代vue2的Vue.extend
+date: 2024/10/12 23:02:47
+tag: vue3
+description: vue3中移除了Vue.extend，因此使用createApp来进行替换，但是两者写法并不相同，记录此文
+---
+
+## 基本
+
+一个基本的 Vue 组件，包含了 props 和 emit 出的事件，此外 createApp 创建的组件还应该手动销毁，以避免内存泄露？
+
+1. createApp 创建的组件不能使用 vue 指令，包括 vue 自带指令（v-model 等）和自定义指令，需要自行实现功能
+2. 接收的事件前必须增加 on 关键字，并转为小驼峰
+3. createApp 返回组件实例 app，可以通过 app.unmount()方法卸载
+4. 需要通过 app.mount('dom')手动挂载到对应 dom 上，同 Vue.extend
+
+```js
+const app = createApp(CustomDrawMarkerInfo, {
+  formData: formData,
+  show: true,
+  onConfirm() {
+    console.log('触发了emit.confirm')
+  },
+  'onUpdate:show'() {
+    console.log('触发了emit."update:show"')
+  },
+})
+
+app.mount('#map_position_control')
+
+setTimeout(() => {
+  app.unmount()
+}, 3000)
+```
