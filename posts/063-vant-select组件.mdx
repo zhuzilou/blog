@@ -1,0 +1,148 @@
+---
+title: vant-select组件
+date: 2024/10/15 10:19:48
+tag: vue3,vant
+description: 基于vue3，vant4的van-picker和van-field封装van-select组件
+---
+
+## 代码
+
+```vue
+<script setup>
+const props = defineProps({
+  value: {
+    type: String,
+    default: '',
+  },
+  columns: {
+    type: Array,
+  },
+  columnsFieldNames: {
+    type: Object,
+    default: () => {
+      return {
+        text: 'label',
+        value: 'value',
+      }
+    },
+  },
+  extra: {
+    type: [String, Number],
+    default: '',
+  },
+  placeholder: {
+    type: String,
+    default: '请选择',
+  },
+})
+
+const emit = defineEmits(['update:value'])
+
+const show = ref(false)
+const text = ref('')
+const modelValue = ref('')
+
+onMounted(() => {
+  echo()
+})
+
+watch(
+  () => props.value,
+  () => {
+    echo()
+  }
+)
+
+watch(
+  () => props.extra,
+  () => {
+    echo()
+  }
+)
+
+watch(
+  () => props.columns,
+  () => {
+    echo()
+  }
+)
+
+const echo = () => {
+  props.columns
+    ? props.columns.some((item, index) => {
+        if (item[props.columnsFieldNames.value] === props.value) {
+          if (props.extra) {
+            text.value = props.columns[index][props.columnsFieldNames.text] + props.extra
+          } else {
+            text.value = props.columns[index][props.columnsFieldNames.text]
+          }
+
+          modelValue.value = props.value
+          return true
+        } else {
+          text.value = props.placeholder
+          return false
+        }
+      })
+    : (text.value = props.value || props.placeholder)
+}
+
+const onConfirm = ({ selectedValues }) => {
+  emit('update:value', selectedValues[0])
+  show.value = false
+}
+</script>
+
+<template>
+  <div class="select" @click="show = true">
+    <span>{{ text }}</span>
+
+    <van-popup v-model:show="show" round position="bottom" teleport="body">
+      <van-picker
+        :value="props.value"
+        :columns="props.columns"
+        show-toolbar
+        :columns-field-names="props.columnsFieldNames"
+        :title="$attrs.label"
+        :loading="$attrs.loading"
+        @cancel="show = !show"
+        @confirm="onConfirm"
+      ></van-picker>
+    </van-popup>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.select {
+  padding: 0 12px;
+  height: 35px;
+  line-height: 35px;
+  background: no-repeat url('@/assets/image/arrow-down.png');
+  background-size: 16px;
+  background-position: right 4px center;
+  border: 1px solid #e5e7e9;
+  border-radius: 4px;
+
+  span {
+    display: block;
+    font-weight: 400;
+    font-size: 14px;
+    color: #000207;
+    white-space: nowrap;
+  }
+}
+</style>
+```
+
+## 添加至自定义表单项
+
+见 [vant4-useCustomFieldValue 的使用](https://vant-ui.github.io/vant/#/zh-CN/use-custom-field-value)
+
+```js
+import { useCustomFieldValue } from '@vant/use'
+
+useCustomFieldValue(() => props.value)
+```
+
+## 使用效果
+![](https://images.djdg626.com/images/202410151029624.gif)
