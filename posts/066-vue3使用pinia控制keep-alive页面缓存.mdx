@@ -1,0 +1,87 @@
+---
+title: vue3使用pinia控制keep-alive页面缓存
+date: 2024/11/05 10:08:57
+tag: vue3,pinia,vue-router
+description: 将keep-alive include数组保存在pinia中，动态使用js控制缓存是否生效
+---
+
+## 代码
+
+```js
+// pinia store
+import { defineStore } from 'pinia'
+
+export const usePageAliveStore = defineStore('page-store', {
+  state: () => {
+    return {
+      keepAliveArr: [],
+    }
+  },
+
+  actions: {
+    UPDATE_KEEP_ALIVE(payload) {
+      if (payload.type) {
+        let index = this.keepAliveArr.indexOf(payload.keepAlive)
+        if (index !== -1) {
+          this.keepAliveArr.splice(index, 1) //删除数组的缓存的组件
+        }
+      } else {
+        let index = this.keepAliveArr.indexOf(payload.keepAlive)
+        if (index === -1) {
+          this.keepAliveArr.push(payload.keepAlive) //添加需要缓存的组件
+        }
+      }
+    },
+  },
+})
+```
+
+```vue
+<template>
+  <router-view v-slot="{ Component }">
+    <keep-alive :include="pageAliveStore.keepAliveArr">
+      <component :is="Component" />
+    </keep-alive>
+  </router-view>
+</template>
+
+<script setup>
+const pageAliveStore = usePageAliveStore()
+</script>
+```
+
+```js
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  name: 'scene-detect',
+
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      const pageStore = usePageAliveStore()
+
+      //添加组件缓存
+      console.log('添加组件缓存')
+
+      pageStore.UPDATE_KEEP_ALIVE({
+        keepAlive: 'scene-detect',
+      })
+    })
+  },
+
+  beforeRouteLeave(to, from, next) {
+    // 根据跳转的页面，可选删除路有缓存
+    if (to.path === '/userList') {
+      //删除缓存
+      const pageStore = usePageAliveStore()
+      console.log('删除缓存')
+
+      pageStore.UPDATE_KEEP_ALIVE({
+        type: 1,
+        keepAlive: 'scene-detect',
+      })
+    }
+    next()
+  },
+})
+```
