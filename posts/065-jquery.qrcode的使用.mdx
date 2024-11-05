@@ -1,0 +1,46 @@
+---
+title: jquery.qrcode的使用
+date: 2024/11/05 09:56:27
+tag: jquery,qrcode
+description: 解决在h5中使用jquery.qrcode的问题
+---
+
+## 遇到的问题
+
+1. 在浏览器手机模式中，生成的二维码可以正常显示
+2. 在手机微信浏览器中，生成的二维码消失了
+
+## 解决代码
+
+qrcode 会在浏览器中生成一个 canvas，但是这个 canvas 在手机浏览器中无法正常显示，所以需要将 canvas 转换为图片，再显示在页面上。
+
+再把多余的 canvas 从页面中移除即可。
+
+```html
+<div id="qrCode"></div>
+<div class="code"></div>
+```
+
+```js
+getQRCode('https://www.baidu.com')
+
+function getQRCode(url) {
+  var qrcode = new QRCode('qrCode', {
+    text: url,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H,
+  })
+  var canvas = document.querySelector('canvas')
+  var img = covertCanvasToImage(canvas)
+  $('.code').append(img)
+  $('#qrCode').hide()
+  console.log('img', img)
+}
+
+function covertCanvasToImage(canvas) {
+  var image = new Image()
+  image.src = canvas.toDataURL('image/png')
+  return image
+}
+```
