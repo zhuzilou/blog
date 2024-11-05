@@ -1,0 +1,38 @@
+---
+title: 使用ADB调试安卓h5混合应用
+date: 2024/10/28 13:09:25
+tag: ADB,安卓,h5
+description: 如何调试混合应用
+---
+
+## 安装 ADB
+
+安装安卓调试 adb
+[Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools?hl=zh-cn)
+安装完毕后，`添加环境变量`，cmd 中使用 adb version 指令查看是否安装成功
+
+## 安卓打开调试
+
+1. 启用设备的开发者模式（小米为多次点击设置中的安卓版本号）
+2. 启用 USB 调试（数据线连接时会在手机上弹窗提示，点击允许）
+3. 完成后，使用 adb devices 命令查看是否连接成功
+
+## ADB 映射
+
+cmd 中输入映射指令，这会将 Android 设备上的调试端口 9222 转发到本地的 9222 端口。
+
+```cmd
+adb forward tcp:9222 localabstract:webview_devtools_remote
+```
+
+1.  edge 浏览器打开 edge://inspect
+2.  chrome 浏览器打开 chrome://inspect
+3.  找到对应设备，点击 inspect 调试
+4.  如果是腾讯 tbs/x5 的应用，可以打开 tbs 调试
+    1. 访问 debugtbs.qq.com， 点击 debugtbs.qq.com 后进入 tbs 调试页面，安装线上内核后重启；
+    2. 再次进入 tbs 调试页面，点击 DebugX5,进入 X5 调试页面，点击“信息”， 打开 TBS 内核 Inspector 调试功能，重启；
+    3. 再次进入 tbs 调试页面，点击 DebugX5,进入 X5 调试页面，点击“信息”， 打开 TBS 内核 X5 就 scoreInspector 调试功能，重启；
+
+## 参考
+
+1. [移动端 X5 调试](https://www.cnblogs.com/harbors/p/17565788.html)
