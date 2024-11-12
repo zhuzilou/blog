@@ -1,0 +1,47 @@
+---
+title: html打印自定义内容
+date: 2024/11/12 13:28:36
+tag: html,打印,canvas
+description: 通过canvas，在打开的空白新窗口，打印自定义内容
+---
+
+## 创建 Canvas
+
+```js
+// 在 Canvas 上绘制一些内容
+const canvas = document.createElement('canvas')
+canvas.width = 500
+canvas.height = 300
+const ctx = canvas.getContext('2d')
+ctx.fillStyle = 'lightblue'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+ctx.fillStyle = 'black'
+ctx.font = '20px Arial'
+ctx.fillText('这是 Canvas 的内容', 50, 150)
+
+const dataUrl = canvas.toDataURL() // 将 Canvas 转为图片数据，等会放到新窗口的img标签中显示
+```
+
+## 创建 Print Window
+
+```js
+// 打开一个新窗口，用于打印
+const printWindow = window.open('', '_blank')
+
+printWindow.document.write(`
+  <html>
+    <body style="margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh;">
+      <img src="${dataUrl}" style="max-width: 100%; height: auto;" />
+    </body>
+  </html>
+`)
+
+printWindow.document.close() // 关闭文档流
+printWindow.onload = () => {
+  printWindow.print() // 触发打印
+  printWindow.close() // 打印后关闭窗口
+}
+```
+
+## Demo
+[codepen-自定义打印](https://codepen.io/zhangwh754/pen/WNVLWGy)
