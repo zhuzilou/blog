@@ -1,0 +1,149 @@
+---
+title: 自定义高拓展性axios封装
+date: 2024/12/03 22:23:08
+tag: axios
+description: 包含了一种高拓展性的axios的封装。此外还有customError和AppLoading的封装。
+---
+
+## axios 的封装
+
+在反复封装多次 axios 后，发现过去自己封装的 axios 普遍存在难修改，依赖性高的问题，所以重新封装了 axios 网络请求的代码，不再在拦截器中加入大段代码，而是用函数 try catch 来处理，这样也能方便捕获意外的错误，增加代码健壮性。
+
+1. 支持自定义 loading 全局弹窗
+2. 支持类似 axios.post 的属性调用
+3. 不依赖 axios 的拦截器，方便切换别的请求方法(fetch)
+4. 网络错误和业务错误处理
+
+```js
+import axios from 'axios'
+
+const service = axios.create({
+  baseURL: process.env.MODE === 'production' ? process.env.VUE_APP_BASEURL : '/api01',
+  timeout: 1000 * 180, // request timeout
+  headers: {},
+})
+
+service.interceptors.request.use(
+  config => {
+    // 可以在这里，也可以在createRequestMethod中，放入Auth Token
+
+    return config
+  },
+  error => {
+    return Promise.reject(error)
+  }
+)
+
+export const createRequestMethod =
+  method =>
+  async (url, data, options = { loading: true }) => {
+    try {
+      if (options?.loading) {
+        loading.value = true
+      }
+
+      let response
+
+      if (method === 'get') {
+        response = await service[method](url, { params: data, ...options })
+      } else {
+        response = await service[method](url, data, options)
+      }
+
+      const { data: res } = response
+
+      if (res?.code == '1') {
+        return res.content
+      } else {
+        throw new CustomError(res?.msg, res?.code, res?.content)
+      }
+    } catch (error) {
+      if (error instanceof CustomError) {
+        return Promise.reject(error)
+      } else {
+        const result = error.response.data
+        // 信息弹窗
+        // ...
+        return Promise.reject(new CustomError(result?.message))
+      }
+    } finally {
+      if (options?.loading) {
+        loading.value = false
+      }
+    }
+  }
+
+export default {
+  get: createRequestMethod('get'),
+  post: createRequestMethod('post'),
+}
+```
+
+拓展的自定义 CustomError 类，在原有 message 的基础上增加了 code，方便处理抛出的业务错误
+
+```js
+export default class CustomError extends Error {
+  constructor(message, code) {
+    super(message) // 调用基类的构造函数，并传递错误消息
+
+    this.code = code // 自定义错误代码
+  }
+}
+```
+
+### vue3 管理的 loading 状态
+
+vue3 中，可以根据 loading 计算属性，v-if 控制放在 App.vue 的全局 loading 组件的显示与否，灵活性非常高，而不是把 loading 命令放在 axios 中直接调用。这样也方便在其他页面中逻辑控制 loading 的显示与否。
+
+```js
+import { ref, computed } from 'vue'
+
+const count = ref(0)
+
+const loading = computed({
+  get() {
+    return count.value > 0
+  },
+  set(val) {
+    if (val) {
+      count.value = count.value + 1
+    } else {
+      count.value = Math.max(count.value - 1, 0)
+    }
+  },
+})
+
+export default loading
+```
+
+### 非 vue3 管理的 loading 状态
+
+非 vue3，不能用 vue3 的 computed 和 ref，可以借助 class 类的 get 和 set，是一种很通用的写法，在 set 函数中指令控制 loading 的显示与否
+
+在非微信小程序环境中使用，把 wx loading api 修改为对应的即可。
+
+```js
+class LoadingCount {
+  constructor() {
+    this.count = 0
+  }
+  // use boolean to control loading
+  get loading() {
+    return this.count > 0
+  }
+  set loading(value) {
+    this.count = value ? this.count + 1 : Math.max(this.count - 1, 0)
+
+    if (this.count === 0) {
+      // wx.hideLoading()
+    } else if (this.count === 1) {
+      // wx.showLoading({
+      //   title: '加载中',
+      //   mask: true,
+      // })
+    }
+  }
+}
+
+const loadingCount = new LoadingCount()
+```
