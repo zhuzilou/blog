@@ -40,8 +40,8 @@ Type=simple
 ExecStart=/usr/local/minio/minio server /usr/local/minio/mnt/data --console-address ":9001"
 Environment=MINIO_ACCESS_KEY=admin
 Environment=MINIO_SECRET_KEY=[replace with true password]
-Environment=MINIO_SERVER_URL=https://images.djdg626.com
-Environment=MINIO_BROWSER_REDIRECT_URL=https://images.djdg626.com/console
+Environment=MINIO_SERVER_URL=http://116.198.244.73:9000
+Environment=MINIO_BROWSER_REDIRECT_URL=http://116.198.244.73:9000/console
 Restart=on-failure
 [Install]
 WantedBy=multi-user.target
