@@ -1,0 +1,379 @@
+---
+title: 微信小程序PC端通过webview在小程序上传文件
+date: 2024/12/05 22:56:47
+tag: 微信小程序
+description: 使用webview让pc小程序可以选择除了图片的任意文件，在webview转换为base64通信回小程序端，同时利用小程序的postMessage机制，刷新webview页面，达成loading态和error态
+---
+
+## 代码
+
+### webview 代码
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文件上传</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        width: 400px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      .heading {
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .description {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+
+      .upload-button {
+        display: block;
+        margin: 0 auto;
+        text-align: center;
+        width: 80px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .label {
+        display: inline-block;
+        text-align: center;
+      }
+
+      .upload-button:hover {
+        background-color: #0056b3;
+      }
+
+      #fileItem {
+        position: absolute;
+        left: -999px;
+        opacity: 0;
+      }
+
+      /* 全屏遮罩样式 */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+        z-index: 1000;
+        flex-direction: column;
+      }
+
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid rgba(255, 255, 255, 0.3);
+        border-top: 6px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 30px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .loading-content {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px 50px;
+        border-radius: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .filename {
+        font-size: 18px;
+        color: #007bff;
+        margin-bottom: 15px;
+        word-break: break-all;
+        max-width: 300px;
+      }
+
+      .loading-text {
+        font-size: 20px;
+        color: #ffffff;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error-content {
+        background: rgba(255, 0, 0, 0.1);
+        padding: 30px 50px;
+        border-radius: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .error-text {
+        font-size: 20px;
+        color: #ff0000;
+        margin-bottom: 15px;
+      }
+
+      .error-button {
+        background-color: #ff3b30;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 20px;
+      }
+
+      .error-button:hover {
+        background-color: #dc3545;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container" id="uploadContainer">
+      <h1 class="heading">文件上传</h1>
+      <p class="description">操作步骤</p>
+      <p class="description">1、点击一键上传</p>
+      <p class="description">2、请选择您要上传的文件</p>
+
+      <label for="fileItem" class="upload-button" id="uploadButton"> 一键上传 </label>
+
+      <input id="fileItem" type="file" />
+    </div>
+
+    <script src="../jweixin-1.3.2.js"></script>
+    <script src="../spark-md5.min.js"></script>
+
+    <script>
+      var fileInput = document.getElementById('fileItem')
+      fileInput.addEventListener('change', function (event) {
+        var selectedFile = event.target.files[0]
+        if (selectedFile) {
+          var reader = new FileReader()
+          var spark = new SparkMD5()
+
+          reader.onload = function (loadEvent) {
+            // 计算文件md5值
+            spark.append(loadEvent.target.result)
+            var md5Hash = spark.end()
+
+            // 截取文件base64
+            var base64Data = loadEvent.target.result.split(',')[1]
+
+            // 获取文件大小
+            var fileSize = selectedFile.size
+            var name = selectedFile.name
+
+            var data = {
+              base64Data: base64Data,
+              md5Hash: md5Hash,
+              fileSize: fileSize,
+              name: name,
+            }
+            wx.miniProgram.postMessage({
+              data: data,
+            })
+            wx.miniProgram.redirectTo({
+              url: '../upload/upload?loading=1', // 关键代码，重置webview页面，重新触发onLoad
+            })
+          }
+          reader.readAsDataURL(selectedFile)
+        }
+      })
+    </script>
+    <script>
+      function getQueryParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search)
+        return urlParams.get(name)
+      }
+
+      // 检查 query 中是否有 loading 参数
+      if (getQueryParameter('loading')) {
+        // 隐藏上传容器
+        const uploadContainer = document.getElementById('uploadContainer')
+        if (uploadContainer) {
+          uploadContainer.style.display = 'none'
+        }
+
+        // 获取文件名
+        const filename = getQueryParameter('name') || '上传的文件名称'
+
+        // 显示遮罩
+        const overlay = document.createElement('div')
+        overlay.className = 'overlay'
+
+        // 创建加载内容容器
+        const loadingContent = document.createElement('div')
+        loadingContent.className = 'loading-content'
+
+        // 创建加载动画
+        const spinner = document.createElement('div')
+        spinner.className = 'spinner'
+
+        // 创建文件名显示
+        const filenameDiv = document.createElement('div')
+        filenameDiv.className = 'filename'
+        filenameDiv.textContent = filename
+
+        // 创建文本提示
+        const text = document.createElement('div')
+        text.className = 'loading-text'
+        text.textContent = '正在上传中，请稍后...'
+
+        loadingContent.appendChild(spinner)
+        loadingContent.appendChild(filenameDiv)
+        loadingContent.appendChild(text)
+        overlay.appendChild(loadingContent)
+        document.body.appendChild(overlay)
+      }
+    </script>
+    <script>
+      if (getQueryParameter('error')) {
+        // 隐藏上传容器
+        const uploadContainer = document.getElementById('uploadContainer')
+        if (uploadContainer) {
+          uploadContainer.style.display = 'none'
+        }
+
+        // 显示错误遮罩
+        const overlay = document.createElement('div')
+        overlay.className = 'overlay'
+
+        // 创建错误内容容器
+        const errorContent = document.createElement('div')
+        errorContent.className = 'error-content'
+
+        // 创建错误文本
+        const errorText = document.createElement('div')
+        errorText.className = 'error-text'
+        errorText.textContent = '上传失败，请重试。'
+
+        // 创建返回按钮
+        const backButton = document.createElement('button')
+        backButton.className = 'error-button'
+        backButton.textContent = '返回'
+        backButton.onclick = function () {
+          // 返回原始页面
+          wx.miniProgram.navigateBack()
+        }
+
+        errorContent.appendChild(errorText)
+        errorContent.appendChild(backButton)
+        overlay.appendChild(errorContent)
+        document.body.appendChild(overlay)
+      }
+    </script>
+  </body>
+</html>
+```
+
+### 小程序代码
+
+```js
+// pages/upload/upload.js
+
+/**
+ * 1. 初始进入页面，直接加载webview
+ * 2. webview中选择文件后，使用redirectTo(upload)刷新页面，来触发bindMessage
+ * 3. bindMessage进行上传逻辑
+ * 4. 上传时redirect(upload)，更新webview为加载态
+ * 5. 上传成功就回退页面
+ * 6. 上传失败redirect(upload)刷新页面，更新webview为错误态
+ */
+
+Page({
+  data: {
+    _webviewUrl: 'http://127.0.0.1:5500/index.html',
+  },
+
+  options: {},
+  dataInfo: {},
+
+  onLoad: function (options) {
+    const eventChannel = this.getOpenerEventChannel()
+    eventChannel &&
+      eventChannel.on &&
+      eventChannel.on('dataInfo', data => {
+        this.dataInfo = data
+      })
+
+    this.options = options
+
+    if (options.loading) {
+      this.setData({
+        _webviewUrl: this.data._webviewUrl + '?loading=1&name=filename.pdf', // 关键代码，刷新webview为loading态
+      })
+    }
+    if (options.error) {
+      this.setData({
+        _webviewUrl: this.data._webviewUrl + '?error=1', // 关键代码，刷新webview为error态
+      })
+    }
+  },
+
+  bindMessage(e) {
+    const data = e.detail.data[0]
+
+    console.log('我要上传', this.dataInfo.id)
+    setTimeout(() => {
+      if (Math.random() > 0.2) {
+        console.log('上传', this.dataInfo.id, '成功')
+        wx.navigateBack() // 上传成功
+      } else {
+        console.log('上传', this.dataInfo.id, '失败')
+        // 上传失败
+        wx.redirectTo({
+          url: '../upload/upload?error=1', // 关键代码，重置webview页面，重新触发onLoad
+        })
+      }
+    }, 2000)
+  },
+})
+```
