@@ -1,0 +1,144 @@
+---
+title: 微信小程序自定义Toast
+date: 2024/12/17 09:33:15
+tag: 微信小程序
+description: 使用自定义Toast替换wx.showToast，解决wx.showToast字数限制的问题
+---
+
+## 组件封装
+
+```html
+<!--components/Toast/index.wxml-->
+<view class="toast {{ show ? 'toast-show' : '' }}">
+  <view class="toast-content">{{message}}</view>
+</view>
+```
+
+```scss
+/* components/Toast/index.wxss */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 16rpx 32rpx;
+  border-radius: 8rpx;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 9999;
+
+  &.toast-show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .toast-content {
+    color: #fff;
+    font-size: 28rpx;
+    text-align: center;
+    word-break: break-all;
+  }
+}
+```
+
+```json
+{
+  "component": true,
+  "usingComponents": {}
+}
+```
+
+```js
+// components/Toast/index.js
+Component({
+  data: {
+    show: false,
+    message: '',
+  },
+  timer: null,
+
+  methods: {
+    show(message, duration = 1500) {
+      if (this.timer) {
+        clearTimeout(this.timer)
+      }
+
+      this.setData({
+        show: true,
+        message,
+      })
+
+      this.timer = setTimeout(() => {
+        this.setData({
+          show: false,
+          message: '',
+        })
+        this.timer = null
+      }, duration)
+    },
+  },
+})
+```
+
+## 组件引用和使用
+
+```json
+{
+  "usingComponents": {
+    "Toast": "/components/Toast/index"
+  }
+}
+```
+
+```js
+// utils/index
+export function showToast(_this, message, duration = 1500) {
+  const toast = _this.selectComponent('#toast')
+  if (toast) {
+    toast.show(message, duration)
+  } else {
+    wx.showToast({
+      title: message,
+      icon: 'none',
+    })
+  }
+}
+```
+
+```js
+import { showToast } from '../../utils/index'
+
+Page({
+  onLoad() {
+    showToast('Hello World')
+  },
+})
+```
+
+## 在外部 js 中使用
+
+`const toast = _this.selectComponent('#toast');`
+
+这样封装就不能在外部 js 直接使用 showToast 来拉出这个页面的弹窗了
+
+需要修改为如下的方式
+
+```js
+export function showToast(message, duration = 1500) {
+  const pages = getCurrentPages()
+  if (pages.length === 0) return // 页面栈为空
+
+  const currentPage = pages[pages.length - 1]
+  const toast = currentPage.selectComponent('#toast')
+
+  if (toast) {
+    toast.show(message, duration)
+  } else {
+    wx.showToast({
+      title: message,
+      icon: 'none',
+    })
+  }
+}
+```
