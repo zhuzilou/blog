@@ -1,0 +1,66 @@
+---
+title: 极简手写Promise
+date: 2025/01/05 23:14:52
+tag: js
+description:
+---
+
+## Promise 的特性
+
+1. Promise 可以链式调用
+2. Promise 有 3 种状态：pending、fulfilled、rejected
+3. Promise 状态变化后不可逆
+
+## 极简 Promise
+
+下方例子实现了一个最简的 Promise，可以链式调用，then 函数会把 then 函数返回的内容作为 Promise 传递给下一个 then 函数
+
+```js
+class MyPromise {
+  constructor(callback) {
+    this.cbs = []
+    const resolve = content => {
+      setTimeout(() => {
+        this.data = content
+        this.cbs.forEach(cb => cb(content))
+      })
+    }
+
+    callback(resolve)
+  }
+
+  then(callback) {
+    return new MyPromise(resolve => {
+      this.cbs.push(() => {
+        const res = callback(this.data)
+
+        if (res instanceof MyPromise) {
+          res.then(resolve)
+        } else {
+          resolve(res)
+        }
+      })
+    })
+  }
+}
+
+new MyPromise(resolve => {
+  resolve('resolve content')
+})
+  .then(res => {
+    return res + '1'
+  })
+  .then(res => {
+    return res + '2'
+  })
+  .then(res => {
+    return res + '3'
+  })
+  .then(res => {
+    console.log(res) // resolve content123
+  })
+```
+
+## Promise.resolve
+
+未完待续
