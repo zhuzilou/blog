@@ -1,0 +1,34 @@
+---
+title: 微信小程序组件的组件使用插槽
+date: 2025/01/13 16:47:31
+tag: 微信小程序
+description: 页面使用Parent组件。Parent组件下使用多个Child组件。现在希望页面可以通过插槽传递一个组件/dom到Child组件中去，页面可以完全控制这个组件/dom的样式和事件
+---
+
+## 代码
+
+```html
+// page.wxml
+<MParent>
+  <button wx:for="{{5}}" wx:key="item" slot="test-{{item}}" data-index="{{index}}" bind:tap="onButtonClick">
+    测试按钮{{item}}
+  </button>
+</MParent>
+```
+
+```html
+// Parent.wxml
+<MChild wx:for="{{5}}" wx:key="index" item="{{item}}">
+  <view slot="c-test-{{item}}">
+    <slot name="test-{{item}}"> </slot>
+  </view>
+</MChild>
+```
+
+```html
+// Child.wxml
+<slot name="c-test-{{item}}"></slot>
+```
+
+### 效果
+![](http://116.198.244.73:9000/images/202501131701321.png)
