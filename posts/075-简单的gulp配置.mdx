@@ -1,0 +1,88 @@
+---
+title: 简单的gulp配置
+date: 2025/01/21 22:25:33
+tag: gulp
+description: 自用的gulp配置，用于实时编译ts=》js，scss=》js
+---
+
+## 标题
+
+用于微信小程序的组件库封装，用来把 ts 和 scss 文件实时转换为 js 和 wxss 文件
+
+1. clean 库让每次运行删除上次文件夹下的所有内容
+2. rename 库把转换后的 css 命名为 wxss
+3. browser-sync 启动了一个服务器，用来监听文件的修改
+
+```js
+import gulp from 'gulp'
+import { src, dest, watch } from 'gulp'
+import ts from 'gulp-typescript'
+import * as dartSass from 'sass'
+import gulpSass from 'gulp-sass'
+import rename from 'gulp-rename'
+import { deleteAsync as del } from 'del'
+import browserSync from 'browser-sync'
+
+const tsProject = ts.createProject('tsconfig.json')
+const sass = gulpSass(dartSass)
+
+const paths = {
+  styles: {
+    src: 'MiniProgram/**/*.scss',
+    dest: 'dist/',
+  },
+  scripts: {
+    src: 'MiniProgram/**/*.ts',
+    dest: 'dist/',
+  },
+  misc: {
+    src: 'MiniProgram/**/*{.js,.wxml,.json}',
+    dest: 'dist/',
+  },
+}
+
+/*
+ * For small tasks you can export arrow functions
+ */
+export const clean = () => del(['dist/**/*', '!dist'])
+
+/*
+ * You can also declare named functions and export them as tasks
+ */
+export function styles() {
+  return (
+    src(paths.styles.src)
+      .pipe(sass())
+      .pipe(
+        rename(function (path) {
+          path.extname = '.wxss' // Change extension from .css to .wxss
+        })
+      )
+      // pass in options to the stream
+      .pipe(dest(paths.styles.dest))
+  )
+}
+
+export function scripts() {
+  return src(paths.scripts.src).pipe(tsProject()).js.pipe(dest(paths.scripts.dest))
+}
+
+export function miscs() {
+  return src(paths.misc.src).pipe(dest(paths.misc.dest))
+}
+
+function watchFiles() {
+  watch(paths.scripts.src, scripts)
+  watch(paths.styles.src, styles)
+  watch(paths.misc.src, miscs)
+}
+export { watchFiles as watch }
+
+gulp.task('serve', () => {
+  browserSync.init()
+})
+
+const build = gulp.series(clean, gulp.parallel(styles, scripts, miscs), gulp.parallel(watchFiles, 'serve'))
+
+export default build
+```
