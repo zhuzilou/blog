@@ -1,0 +1,90 @@
+---
+title: 劫持重写xhr请求
+date: 2025/01/22 22:45:34
+tag: js
+description: 增强/重写原有的xhr请求
+---
+
+## 标题
+
+```js
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    (function () {
+      // 保存原始的 XMLHttpRequest
+      const OriginalXHR = window.XMLHttpRequest;
+
+      // 定义新的 XMLHttpRequest 构造函数
+      function CustomXHR() {
+        const xhr = new OriginalXHR();
+
+        // 重写 open 方法
+        const originalOpen = xhr.open;
+
+        xhr.open = function (method, url) {
+          // 在发送请求前拦截
+          console.log(`拦截请求: ${method} ${url}`);
+
+          // 如果请求的 URL 是需要替换的，则替换为新的 URL
+          if (url === 'http://192.168.1.79:15417/user') {
+            url = 'http://192.168.1.79:15417/survey'; // 替换为新的 URL
+            console.log(`替换为新的 URL: ${url}`);
+          }
+
+
+          // 调用原始的 open 方法
+          originalOpen.apply(xhr, arguments);
+        };
+
+        // 重写 send 方法
+        const originalSend = xhr.send;
+
+        xhr.send = function (body) {
+          console.log('请求体:', body);
+
+          // 监听请求完成事件
+          xhr.addEventListener('load', function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              console.log('请求成功:', xhr.responseText);
+            } else {
+              console.error('请求失败:', xhr.status, xhr.statusText);
+            }
+          });
+
+          // 监听请求错误事件
+          xhr.addEventListener('error', function () {
+            console.error('请求出错:', xhr.statusText);
+          });
+
+          // 调用原始的 send 方法
+          originalSend.apply(xhr, arguments);
+        };
+
+
+        return xhr;
+      }
+
+      // 覆盖全局的 XMLHttpRequest
+      window.XMLHttpRequest = CustomXHR;
+    })();
+  </script>
+
+  <script>
+    axios.post('http://192.168.1.79:15417/user', { id: 999 })
+  </script>
+</body>
+
+</html>
+```
