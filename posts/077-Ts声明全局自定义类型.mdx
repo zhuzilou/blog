@@ -1,0 +1,68 @@
+---
+title: Ts声明全局自定义类型
+date: 2025/01/23 11:06:16
+tag: typescript
+description: typescript声明全局自定义类型，无需import使用
+---
+
+## type 和 interface
+
+根据需求不同选择 type 和 interface
+
+interface 可以和现有的 ts 类型自动合并，如果我希望对某个引入的 npm 库的类型进行扩展，那么 interface 是一个不错的选择。
+
+```ts
+interface User {
+  name: String
+}
+interface User {
+  age: Number
+}
+
+const user: User = {
+  name: 'zhangsan',
+  age: 18,
+}
+```
+
+## 给 npm 库上添加属性
+
+所以使用 interface，可以和原有的类型自动合并
+使用 type，可以增加属性
+
+declare module 的这种引入方法，叫做 Module Augmentation
+
+```ts
+declare module 'vue-router' {
+  // 加强属性
+  interface RouteMeta {
+    isAuth?: boolean
+  }
+  // 增加属性
+  type customName = String
+}
+```
+
+## 声明全局的自定义类型
+
+除了特定的库写法"declare module 'vue-router'"，ts 还可以声明全局的自定义类型，比如：
+
+这种写法叫做 Global Augmentation
+
+如果 tsconfig.json 的 compilerOptions.types 属性包含了这个文件，就能全局使用了
+
+```ts
+declare global {
+  interface Window {
+    $message: any
+  }
+
+  type MyType = string
+}
+
+export {}
+```
+
+## 参考
+
+- [Ts 声明全局自定义类型](https://www.zhihu.com/question/350961609/answer/3559626500)
