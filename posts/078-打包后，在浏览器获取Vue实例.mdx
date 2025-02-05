@@ -1,0 +1,52 @@
+---
+title: 打包后，在浏览器获取Vue实例
+date: 2025/02/05 10:02:35
+tag: vue2
+description: 打包后，直接在浏览器获取vue实例，再通过实例获取属性和方法，也可以通过vue实例，修改/新增属性和方法
+---
+
+## 需求
+
+现在有一个拿不到源码的线上项目，需要通过浏览器获取 vue 实例
+
+然后提前拦截网络请求
+
+## 实现
+
+```js
+// .home是页面根元素的选择器
+const instance = document.querySelector('.home').__vue__
+
+typeof instance.formInline // 'object'
+typeof instance.onSubmit // 'function'
+```
+
+对应的 vue 源码
+
+```vue
+<script>
+export default {
+  data() {
+    return {
+      formInline: {
+        user: 'zwh',
+        region: 'shanghai',
+      },
+    }
+  },
+  methods: {
+    onSubmit() {
+      console.log('submit!')
+    },
+  },
+}
+</script>
+```
+
+同时在此基础上，也支持属性的双向绑定和 methods 的修改新增
+
+```js
+instance.onSubmit2 = () => {
+  instance.formInline.user = Math.random().toString(32).slice(-4)
+}
+```
