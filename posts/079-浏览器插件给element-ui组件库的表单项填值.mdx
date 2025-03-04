@@ -1,0 +1,208 @@
+---
+title: 浏览器插件给element-ui组件库的表单项填值
+date: 2025/03/04 23:03:37
+tag: 浏览器插件,element-ui
+description: 在不知道源码的情况下，不影响页面响应式，给页面的表单项填入对应的内容
+---
+
+## 背景
+
+基于公司的需求，现在要在不知道项目源码的情况下，通过 chrome 浏览器插件，在不影响页面响应式时（不影响正常页面的流程），给页面的表单项填入对应的内容。
+
+对应的项目的技术栈是：vue2.x + element-ui
+
+## 实现思路
+
+原有的想法是通过拿到对应页面的 vue 实例，然后直接修改对应的响应式数据。
+
+但是这种思路行不通，因为对应的系统页面非常复杂，在不知道源码的情况下，一个页面有上百个响应式变量，同时还有大量的嵌套组件，根本难以找到每个表单组件对应的响应式变量，同时也不知道变量对应的业务字段名称是什么，所以放弃了这种思路。
+
+在之后，一位同事提出了 xpath 的思路，通过 xpath 找到对应的表单组件，然后通过 xpath 找到对应的表单组件的 value 属性，然后通过 js 修改对应的 value 属性，从而实现填入内容。虽然在实际尝试后，发现页面 dom 树结构变化时，xpath 的值也会变化，所以不可行。
+
+但是 xpath 的思路启发了我，因为 element-ui 的表单组件，都是基于 input 标签的，都具有 focusin 事件，所以监听页面的 focusin 事件，然后通过事件源的 target 获取对应的 input 标签，然后通过遍历一层层从 input 标签往外遍历到业务标签的名称（label），就能达成获取业务标签的名称。
+
+但是拿到业务标签后，往 input 标签填值也有问题，因为是 vue 响应式管理的值，所以通过 input 标签的 value 属性赋值，并不会触发 vue 的响应式更新。
+后续研究，通过 input 标签的 dispatchEvent 方法触发一次 input 事件，从而触发 vue 的响应式更新。
+
+但是手动触发 input 事件，还是有坑的，el-input 是没有问题的，但是 el-select 就有问题，因为 el-select 的 input 事件是绑定在 el-input 的 input 事件上，所以手动触发 input 事件，并不会触发 el-select 的 change 事件，在我尝试手动触发 el-select 的 change 事件时，发现 vue 的响应式更新依然没有变化。后续尝试拿到 el-select 的实例，修改实例的 value 值，这又犯了直接修改组件自身值的错误。
+
+最后，我发现可以直接触发实例上的 input 事件，然 el-select 自己去触发 change 事件，从而实现填入内容，也能达成修改响应式变量的需求。
+
+## 核心代码
+
+### focus 和遍历
+
+其中 getParentLabel 处理了防止点击不是 el-form 的输入框的场景，防止部分边际场景打乱业务逻辑。
+
+```js
+window.addEventListener('load', function () {
+  document.querySelector('#app').addEventListener('focusin', async event => {
+    const target = event.target
+
+    if (target.tagName === 'INPUT') {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      getParentLabel(target, target) // 递归获取这个组件的父组件的 label
+    }
+  })
+})
+
+function getParentLabel(element, origin) {
+  while (element) {
+    const labels = element.querySelectorAll('.el-form-item__label')
+
+    if (labels.length == 0) {
+      return getParentLabel(element.parentNode, origin)
+    }
+    if (labels.length == 1) {
+      const label = labels[0]
+
+      updateValue(element, origin, label.innerText)
+
+      return
+    }
+    if (labels.length > 1) {
+      console.log('找不到对应的结构')
+      return
+    }
+  }
+}
+```
+
+### 更新表单值
+
+其中，el-input 的值更新很简单，只要在 dom 元素上触发 input 即可
+
+但是 el-select 的 value 更新，需要通过 vue 实例去修改，但是在 chrome 插件的环境中，获取不到对应的**vue**属性，经过研究后，发现可以借助插件的"web_accessible_resources"，通过通信，在 inject 脚本中获取 dom 上的 vue 实例，在 inject 脚本中通过 eval 执行获取 vue 实例，从而修改 vue 实例的 value 属性。这样又需要传入对应的 css 选择器
+
+```js
+async function updateValue(element, origin, label) {
+  const elSelect = element.querySelector('.el-select')
+
+  if (elSelect) {
+    try {
+      // 从页面上下文获取Vue实例
+      const newValue = Math.floor(Math.random() * 1000).toString()
+
+      await updateSelectValueByVueInstance(elSelect, newValue)
+
+      alertMsg(label, newValue)
+    } catch (error) {
+      console.error('获取Vue实例失败:', error)
+    }
+  } else {
+    const inputEvent = new Event('input')
+    const newValue = Math.floor(Math.random() * 1000).toString()
+
+    origin.value = newValue
+    origin.dispatchEvent(inputEvent)
+
+    alertMsg(label, newValue)
+  }
+}
+```
+
+### 独一无二的 css 选择器获取
+
+```js
+// 帮助函数：生成唯一选择器
+function getUniqueSelector(element) {
+  const path = []
+  while (element && element.nodeType === Node.ELEMENT_NODE) {
+    let selector = element.nodeName.toLowerCase()
+    if (element.id) {
+      selector += `#${element.id}`
+      path.unshift(selector)
+      break
+    } else {
+      let sibling = element
+      let nth = 1
+      while (sibling.previousElementSibling) {
+        sibling = sibling.previousElementSibling
+        nth++
+      }
+      selector += `:nth-child(${nth})`
+    }
+    path.unshift(selector)
+    element = element.parentNode
+  }
+  return path.join(' > ')
+}
+```
+
+### 页面脚本注入
+
+```js
+// 注入脚本到页面上下文
+const script = document.createElement('script')
+script.src = chrome.runtime.getURL('inject.js')
+document.documentElement.appendChild(script)
+script.remove()
+
+async function updateSelectValueByVueInstance(element, newValue) {
+  return new Promise((resolve, reject) => {
+    const uid = Date.now().toString()
+    const selector = getUniqueSelector(element)
+
+    const handleResponse = event => {
+      if (event.detail.uid === uid) {
+        window.removeEventListener('VUE_HELPER_RESPONSE', handleResponse)
+        window.removeEventListener('VUE_HELPER_ERROR', handleError)
+        resolve(event.detail.instance)
+      }
+    }
+
+    const handleError = event => {
+      if (event.detail.uid === uid) {
+        window.removeEventListener('VUE_HELPER_RESPONSE', handleResponse)
+        window.removeEventListener('VUE_HELPER_ERROR', handleError)
+        reject(event.detail.error)
+      }
+    }
+
+    window.addEventListener('VUE_HELPER_RESPONSE', handleResponse)
+    window.addEventListener('VUE_HELPER_ERROR', handleError)
+
+    // 发送请求到页面上下文
+    window.dispatchEvent(
+      new CustomEvent('VUE_HELPER_MESSAGE', {
+        detail: { selector, uid, newValue },
+      })
+    )
+  })
+}
+```
+
+### 脚本正文
+
+```js
+// 这个文件将被注入到页面上下文中
+window.addEventListener('VUE_HELPER_MESSAGE', function (event) {
+  try {
+    const element = document.querySelector(event.detail.selector)
+
+    const instance = element.__vueParentComponent || element.__vue__
+
+    if (instance) {
+      instance.$emit('input', event.detail.newValue)
+
+      window.dispatchEvent(
+        new CustomEvent('VUE_HELPER_RESPONSE', {
+          detail: { message: 'success', uid: event.detail.uid },
+        })
+      )
+    } else {
+      throw '找不到 Vue 实例'
+    }
+  } catch (error) {
+    window.dispatchEvent(
+      new CustomEvent('VUE_HELPER_ERROR', {
+        detail: { error, uid: event.detail.uid },
+      })
+    )
+  }
+})
+```
+
+## 插件代码仓库
+
+[github](https://github.com/zhangwh754/input-value-of-element-form)
