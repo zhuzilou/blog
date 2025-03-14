@@ -1,0 +1,117 @@
+---
+title: 仿车牌填写输入框
+date: 2025/03/14 17:06:51
+tag: html
+description:
+---
+
+## 代码
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>业务办理</title>
+    <style>
+      .plate-container {
+        display: flex;
+        gap: 0.02rem;
+        justify-content: center;
+        margin: 0.12rem;
+      }
+
+      .plate-input {
+        width: 0.2rem;
+        height: 0.2rem;
+        padding: 0.02rem;
+        border: 0.01rem solid #333;
+        text-align: center;
+        font-size: 0.2rem;
+        border-radius: 0.04rem;
+        text-transform: uppercase;
+        caret-color: transparent;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+
+      .plate-input:focus {
+        border-color: #01a29a;
+        box-shadow: 0 0 0.05rem #01a29a;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="plate-container">
+      <input type="text" class="plate-input" maxlength="1" value="前" disabled />
+      <input type="text" class="plate-input" maxlength="1" value="缀" disabled />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+      <input type="tel" class="plate-input" maxlength="1" />
+    </div>
+    <div>
+      <button onclick="getConsNo()">getConsNo</button>
+    </div>
+
+    <script>
+      const inputs = document.querySelectorAll('.plate-input')
+
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', function () {
+          if (this.value.length > 1) {
+            this.value = this.value.slice(0, 1)
+          }
+          if (this.value && index < inputs.length - 1) {
+            inputs[index + 1].focus()
+          }
+        })
+
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Backspace' && this.value !== '') {
+            $(this).val('')
+          } else if (e.key === 'Backspace' && !this.value && index > 0) {
+            inputs[index - 1].focus()
+          }
+          // 添加回车键处理
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            // 从当前位置的前一个开始向后移动
+            for (let i = inputs.length - 2; i >= index; i--) {
+              inputs[i + 1].value = inputs[i].value
+            }
+            // 清空当前输入框
+            inputs[index].value = ''
+            // 保持焦点在当前输入框
+            inputs[index].focus()
+          }
+        })
+      })
+    </script>
+    <script>
+      function getConsNo() {
+        const inputs = document.querySelectorAll('.plate-input')
+        let consNo = ''
+
+        inputs.forEach(input => {
+          consNo += input.value
+        })
+
+        console.log(consNo)
+        alert(consNo)
+      }
+    </script>
+</html>
+```
+
+## 在线示例
+
+https://codepen.io/zhangwh754/pen/GgROaOB?editors=0100
