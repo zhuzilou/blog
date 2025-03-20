@@ -1,0 +1,47 @@
+---
+title: css创建合成层优化性能
+date: 2025/03/20 20:24:55
+tag: css
+description: 通过部分特殊的css属性，创建合成层，来减少页面重绘的开销
+---
+
+# 通过 CSS 创建合成层优化渲染性能
+
+## 什么是合成层？
+
+合成层（Compositing Layer）是浏览器渲染机制中的独立绘制单元。浏览器会将特定元素提升到**独立的图形层（GraphicsLayer）**，由 `GPU` 直接处理，从而跳过主线程的布局（Layout）和绘制（Paint）阶段，显著提升动画和滚动性能。
+
+---
+
+## 为什么需要合成层？
+
+默认情况下，标准流的大部分普通元素（video、iframe、canvas 等除外）是绘制在一个图层上的，每次重绘会重新计算整个层，这会带来不必要的性能开销。
+而合成层则直接将元素绘制到一个独立的图形层上，从而减少了重绘开销
+
+---
+
+## 如何创建合成层？
+
+### 触发条件（部分 CSS 属性）
+
+```css
+.element {
+  transform: translateZ(0); /* 3D 变换 */
+  opacity: 0.9; /* 透明度（部分浏览器）*/
+  will-change: transform; /* 预先声明变化 */
+  position: fixed; /* 固定定位 */
+  filter: blur(5px); /* 滤镜效果 */
+  animation: move 1s; /* 硬件加速动画 */
+}
+```
+
+## 是不是要多使用合成层？
+
+合成层并不是用得越多越好，过度使用合成层会增加内存消耗，从而影响性能。
+
+尤其是在移动端上容易造成崩溃
+
+详见：[will-change - CSS：层叠样式表 | MDNMDN Web DocsMDN logo](https://developer.mozilla.org/zh-CN/docs/Web/CSS/will-change)
+
+## 如何查询图层
+![](http://116.198.244.73:9000/images/20250320203801.png)
