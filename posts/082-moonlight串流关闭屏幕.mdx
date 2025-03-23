@@ -1,0 +1,23 @@
+---
+title: moonlight串流关闭屏幕
+date: 2025/03/23 09:25:37
+tag: 实用经验
+description: 使用moonlight时，dp线的屏幕关闭后，串流的画面会变为黑屏，使用虚拟屏幕解决
+---
+
+## 使用 Moonlight 串流时关闭屏幕的解决方案
+
+### 问题描述
+
+在使用 Moonlight 进行游戏串流时，许多用户会遇到一个问题：当通过 DP 线连接的显示器关闭后，串流的画面会变为黑屏。这是因为 Moonlight 依赖于主显示器的信号输出，一旦显示器关闭，系统会认为没有显示设备可用，从而导致串流画面中断。
+
+### 解决方案：使用虚拟屏幕
+
+为了解决这个问题，可以使用虚拟屏幕工具来模拟一个显示器，即使物理显示器关闭，系统仍然会认为有一个显示器在运行，从而保持串流的正常进行。
+
+#### 步骤
+
+1. 下载[GitHub - nomi-san/parsec-vdd: ✨ Perfect virtual display for game streaming](https://github.com/nomi-san/parsec-vdd)
+2. 新增一块虚拟屏幕
+3. 使用 sunshine 文档里面提供的`tools\dxgi-info.exe`，用 cmd 运行后可以找到新虚拟显示器的名称
+4. 指定 sunshine 的输出名称为新虚拟显示器的名称，笔者的为`\\.\DISPLAY8`。
