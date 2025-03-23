@@ -1,0 +1,206 @@
+---
+title: 跨域、同源和代理的问题
+date: 2025/03/23 12:34:42
+tag: 跨域
+description: 在浏览器访问资源时，会有同源策略。同源策略保证了资源交互的安全性，但也限制了正常的资源交互。
+---
+
+## 跨域、同源的问题
+
+### 问题描述
+
+在浏览器中调用后端接口时, 经常会遇到浏览器提示 blocked by cors：这就是跨域问题，当违反了浏览器的同源策略时，`浏览器`会限制 html 和另一个来源的资源进行交互
+
+![](http://116.198.244.73:9000/images/20250323123643.png)
+
+### 同源的定义
+
+- 协议：http 和 https
+- 主机：域名或 ip 地址
+- 端口
+
+只有当两个 url 的协议、主机、端口`都相同`时，才被认为是`同源`，否则就会跨域
+
+### 解决跨域的方案
+
+1. 把静态资源和 api 部署在同一个服务器上
+2. api 服务器开启 cors
+3. 前端使用 dev-server 开启代理
+4. nginx 开启`反向代理`
+
+其中 3 和 4 方案分别是开发时和生产时使用最多的方案
+
+#### 1. 把静态资源和 api 部署在同一个服务器上
+
+即直接使用 api 服务器来部署静态资源，这样，静态资源和 api 服务器就是同源了，不会触发跨域
+
+```js
+const Koa = require('koa')
+const path = require('path')
+const static = require('koa-static')
+
+const app = new Koa()
+
+// 设置静态文件目录
+const staticPath = path.join(__dirname, 'public')
+
+// 使用 koa-static 中间件
+app.use(static(staticPath))
+
+app.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000')
+})
+```
+
+#### 2. api 服务器开启 cors
+
+cors 是一些响应头的集合，用来解决跨域问题的
+
+其中最重要的是 Access-Control-Allow-Origin
+
+```js
+const Koa = require('koa')
+const app = new Koa()
+
+// 自定义 CORS 中间件
+app.use(async (ctx, next) => {
+  // 设置允许的请求源（Access-Control-Allow-Origin）
+  ctx.set('Access-Control-Allow-Origin', '*') // 允许所有域名访问，也可以指定特定域名
+
+  // 设置允许的请求方法（Access-Control-Allow-Methods）
+  ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+
+  // 设置允许的请求头（Access-Control-Allow-Headers）
+  ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  // 设置是否允许发送 Cookie（Access-Control-Allow-Credentials）
+  // 如果允许发送 Cookie，Access-Control-Allow-Origin 不能为 '*'，必须指定具体域名
+  ctx.set('Access-Control-Allow-Credentials', 'true')
+
+  // 处理预检请求（OPTIONS 请求）
+  if (ctx.method === 'OPTIONS') {
+    ctx.status = 204 // 204 No Content
+    return
+  }
+
+  await next()
+})
+
+// 启动服务器
+app.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000')
+})
+```
+
+##### 预检请求
+
+浏览器在发送非简单的请求时，会先发送一个预检请求（OPTIONS 请求），用来询问服务器是否允许发送真正的请求。如果服务器允许，浏览器再发送真正的请求。
+
+非简单请求
+
+1. 请求头中包含自定义的请求头
+
+- Authorization 也是自定义的请求头
+
+2. PUT 请求、DELETE 请求
+3. Content-Type 是 application/json
+
+- application/x-www-form-urlencoded、multipart/form-data、text/plain 都是简单请求
+
+4. 请求中携带 cookie
+
+- axios 的 withCredentials 设置为 true
+
+#### 3. 前端使用 dev-server 开启代理
+
+以 webpack 为例，webpack 内部使用了 http-proxy-middleware 来代理请求的，通过代理请求，可以解决跨域问题。
+
+原理是 dev-server 会拦截请求，然后根据配置的代理规则，将请求转发到目标服务器。
+
+即前端资源和 webpack 服务器是同源的，所以不会触发跨域问题。而 webpack 服务器与 api 服务器之间不会触发跨域问题。
+
+```js
+// webpack.config.js
+module.exports = {
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': '',
+        },
+      },
+    },
+  },
+}
+```
+
+#### 4. nginx 开启反向代理
+
+nginx 是一个高性能的 web 服务器，可以作为反向代理服务器，用来解决跨域问题。
+
+nginx 配置反向代理也有两种方式
+
+1. nginx 只代理 api 服务器，此时仍不同源，需要用 nginx 增加 cors
+
+```nginx.conf
+server {
+  listen 80;
+  server_name localhost;
+
+  location /api/ {
+    proxy_set_header Host $host; # 将客户端请求的 Host 头信息设置为原始请求的主机名
+    proxy_set_header X-Real-IP $remote_addr; # 设置 X-Real-IP 头信息，包含客户端的真实 IP 地址
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # 设置 X-Forwarded-For 头信息，包含所有中间代理的 IP 地址
+    proxy_set_header X-Forwarded-Proto $scheme; # 设置 X-Forwarded-Proto 头信息，包含客户端请求使用的协议（HTTP 或 HTTPS）
+
+    # 添加跨域头信息
+    add_header Access-Control-Allow-Origin *;
+    add_header Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE";
+    add_header Access-Control-Allow-Headers "Content-Type, Authorization, Accept";
+
+    # 处理预检请求
+    if ($request_method = OPTIONS) {
+      return 204;
+    }
+
+    rewrite ^/api/(.*)$ /$1 break; # 因为服务器没有/api,所以做一次重写
+    proxy_pass http://localhost:8000;
+  }
+}
+```
+
+2. nginx 代理静态资源和 api 服务器，api 服务器与 nginx 服务器同源
+
+```nginx.conf
+server {
+  listen 8080;
+  server_name localhost;
+
+  location / {
+    root C:/programming/project/vue-analysis-management/dist;
+    index index.html index.htm;
+  }
+
+  location /api/ {
+    rewrite ^/api/(.*)$ /$1 break;
+    proxy_pass http://localhost:8000;
+  }
+}
+```
+
+### 正向代理和反向代理
+
+正向代理和反向代理的关键区别在于**代理的目标对象**：
+
+- **正向代理**：
+
+  - 客户端配置代理（如 VPN），代理代表客户端访问目标服务器。
+  - 目标服务器不知道真实客户端的存在，认为请求来自代理。
+  - **应用场景**：突破网络限制（如访问被墙的网站）。
+
+- **反向代理**：
+  - 客户端直接访问代理服务器，代理将请求转发到背后的目标服务器。
+  - 客户端不知道目标服务器的存在，认为代理就是真实服务器。
+  - **应用场景**：负载均衡、隐藏真实服务器、解决跨域（如 webpack-dev-server 代理）。
