@@ -1,0 +1,105 @@
+---
+title: axios处理responseType-blob时报错时的json
+date: 2025/03/28 16:41:16
+tag: axios
+description: 处理返回流的下载接口，因为某种原因报错的情况
+---
+
+## 代码
+
+1. 判断请求时候的`responseType: 'blob'`
+2. 判断响应头中是否包含`content-type: application/json`
+3. 如果服务端返回了 json，则用 FileReader 解析为文本，再转回 json
+
+```js showLineNumbers {28,29,37}
+const service = axios.create({
+  baseURL: import.meta.env.VITE_HTTP_BASE_URL,
+  timeout: 1000 * 30, // request timeout
+  headers: {},
+})
+
+export const createRequestMethod =
+  method =>
+  async (url, data, options = { loading: true }) => {
+    try {
+      if (options?.loading) {
+        loading.value = true
+      }
+
+      let response
+
+      if (method === 'get') {
+        response = await service[method](url, { params: data, ...options })
+      } else {
+        response = await service[method](url, data, options)
+      }
+
+      const responseHeader = response.headers.get('content-type')
+
+      if (responseHeader?.indexOf('application/json') == -1) {
+        const disposition = response.headers.get('Content-Disposition')
+        return { blob: response.data, fileName: decodeFileName(disposition) }
+      } else if (responseHeader?.indexOf('application/json') != -1 && options?.responseType == 'blob') {
+        const text = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = () => reject(reader.error)
+          reader.readAsText(response.data)
+        })
+
+        // 尝试解析为JSON
+        const json = JSON.parse(text)
+
+        throw new CustomError(json?.msg || json?.message || '服务器错误', json?.code, json?.content)
+      }
+
+      const { data: res } = response || {}
+
+      if (SUCCESS_CODE.includes(res?.code)) {
+        return res.content
+      } else {
+        throw new CustomError(res?.msg || '服务器错误', res?.code, res?.content)
+      }
+    } catch (error) {
+      if (error instanceof CustomError) {
+        if (error.code == '2') {
+          logout()
+        }
+
+        return Promise.reject(error)
+      } else {
+        const msg = error?.message ?? error?.response?.data?.message
+        return Promise.reject(new CustomError(msg || '服务器异常'))
+      }
+    } finally {
+      if (options?.loading) {
+        loading.value = false
+      }
+    }
+  }
+
+function decodeFileName(header) {
+  // 优先解析 filename*（RFC 5987 标准）
+  const filenameStarRegex = /filename\*=utf-8''([^;]+)/i
+  const filenameStarMatch = header?.match(filenameStarRegex)
+  if (filenameStarMatch) {
+    return decodeURIComponent(filenameStarMatch[1])
+  }
+
+  // 次选解析 filename（处理双重编码）
+  const filenameRegex = /filename=(["']?)([^;"']+)\1/i
+  const filenameMatch = header?.match(filenameRegex)
+  if (filenameMatch) {
+    const encoded = filenameMatch[2]
+    // 处理双重编码：将 %25 恢复为 %，再解码
+    return decodeURIComponent(encoded.replace(/%25/g, '%'))
+  }
+
+  return 'download.docx' // 兜底的文件名
+}
+
+export default {
+  get: createRequestMethod('get'),
+  post: createRequestMethod('post'),
+}
+```
