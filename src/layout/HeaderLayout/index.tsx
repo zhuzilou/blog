@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import ThanksTo from '@/components/ThanksTo'
 
 const headerNavLinks = [
   { href: '/', title: '首页' },
@@ -17,9 +18,12 @@ const ToggleSearchShow = dynamic(() => import('./ToggleSearchShow'), { ssr: true
 
 function HeaderLeft() {
   return (
-    <Link href={'/'} className="text-xl font-bold">
-      djdg626的博客
-    </Link>
+    <div>
+      <Link href={'/'} className="text-xl font-bold">
+        DSL的博客
+      </Link>
+      <ThanksTo className=''/>
+    </div>
   )
 }
 
