@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
-import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 import SiteHeader from '@/layout/HeaderLayout'
 import SiteScrollTop from '@/components/SiteScrollTop'
@@ -32,8 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <SiteScrollTop />
-
-        <Analytics />
       </body>
     </html>
   )
