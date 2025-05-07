@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@giscus/react": "^2.4.0",
-    "@vercel/analytics": "^1.1.2",
     "contentlayer": "^0.3.4",
     "dayjs": "^1.11.10",
     "lightgallery": "^2.7.2",
@@ -21,6 +20,7 @@
     "react-dom": "^18",
     "rehype-pretty-code": "^0.12.3",
     "remark-gfm": "^3.0.1",
+    "sharp": "^0.34.1",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
