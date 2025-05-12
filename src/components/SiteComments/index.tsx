@@ -7,10 +7,10 @@ import { useThemeStore } from 'stores/theme-store'
 export default function SiteComments(props: { slug: string }) {
   const isDark = useThemeStore(state => state.isDark, shallow)
   const env = {
-    repo: process.env.GISCUS_REPO_NAME as `${string}/${string}`,
-    repoId: process.env.GISCUS_REPO_ID!,
-    category: process.env.GISCUS_REPO_CATEGORY,
-    categoryId: process.env.GISCUS_REPO_CATEGORYID,
+    repo: process.env.NEXT_PUBLIC_GISCUS_REPO_NAME as `${string}/${string}`,
+    repoId: process.env.NEXT_PUBLIC_GISCUS_REPO_ID!,
+    category: process.env.NEXT_PUBLIC_GISCUS_REPO_CATEGORY,
+    categoryId: process.env.NEXT_PUBLIC_GISCUS_REPO_CATEGORYID,
   }
 
   return (
