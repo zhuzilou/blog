@@ -1,0 +1,81 @@
+---
+title: brew安装指定版本软件（macOS）
+date: 2025-01-14
+tag: brew
+description: brew安装指定版本软件（macOS）
+---
+
+# 方法一
+```java
+brew search xmind
+--如果有历史版本
+brew install xmind@版本号
+```
+
+# 方法二
+```bash
+brew info xmind
+
+==> xmind: 24.12.04124-202412250704
+https://www.xmind.net/
+Not installed
+From: https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/x/xmind.rb
+==> Name
+XMind
+==> Description
+Mind mapping and brainstorming tool
+==> Artifacts
+Xmind.app (App)
+==> Analytics
+install: 328 (30 days), 934 (90 days), 3,776 (365 days)
+```
+
+## 找到rb那条链接，复制到浏览器中打开，选择History
+![](https://lsky.lostyouth.cc/i/2025/05/18/6829a690e3863.png)
+
+
+## 页面搜索版本号，找到对应版本，选择右侧图标
+![](https://lsky.lostyouth.cc/i/2025/05/18/6829a693158d4.png)
+
+## 复制浏览器中的rb地址，下图红框中地址
+![](https://lsky.lostyouth.cc/i/2025/05/18/6829a6933beff.png)
+
+## 安装1
+### 在本地下载rb文件，这里使用wget命令实现
+```bash
+wget https://github.com/Homebrew/homebrew-cask/raw/1b34713fdb1f6d200e6ba935ddd726bd0a28a001/Casks/x/xmind.rb
+--2025-01-14 13:24:27--  https://github.com/Homebrew/homebrew-cask/raw/1b34713fdb1f6d200e6ba935ddd726bd0a28a001/Casks/x/xmind.rb
+正在连接 127.0.0.1:7897... 已连接。
+已发出 Proxy 请求，正在等待回应... 302 Found
+位置：https://raw.githubusercontent.com/Homebrew/homebrew-cask/1b34713fdb1f6d200e6ba935ddd726bd0a28a001/Casks/x/xmind.rb [跟随至新的 URL]
+--2025-01-14 13:24:28--  https://raw.githubusercontent.com/Homebrew/homebrew-cask/1b34713fdb1f6d200e6ba935ddd726bd0a28a001/Casks/x/xmind.rb
+正在连接 127.0.0.1:7897... 已连接。
+已发出 Proxy 请求，正在等待回应... 200 OK
+长度：655 [text/plain]
+正在保存至: “xmind.rb”
+
+xmind.rb                                            100%[==================================================================================================================>]     655  --.-KB/s  用时 0s      
+
+2025-01-14 13:24:28 (16.0 MB/s) - 已保存 “xmind.rb” [655/655])
+```
+
+### 执行安装命令，brew install ./xmind.rb
+```bash
+brew install ./xmind.rb                                                                                     
+Error: Failed to load formula: ./xmind.rb
+xmind: undefined method `cask' for module Formulary::FormulaNamespace74d1b8d2814f188bb54bfa1852dec4c6f42adb9984adef68bbede79a628ee492
+Warning: Treating ./xmind.rb as a cask.
+==> Downloading https://dl3.xmind.net/Xmind-for-macOS-23.11.04336-202311170144.dmg
+######################################################################################################################################################################################################## 100.0%
+==> Installing Cask xmind
+==> Moving App 'Xmind.app' to '/Applications/Xmind.app'
+🍺  xmind was successfully installed!
+```
+
+## 安装2，若安装1中执行brew install ./xmind.rb失败
+### 从图中复制绿色框地址，替换version，在浏览器中打开
+![](https://lsky.lostyouth.cc/i/2025/05/18/6829a693ba5e6.png)
+
+### 通常会让下载一个dmg文件，下载成功后，本地安装
+![](https://lsky.lostyouth.cc/i/2025/05/18/6829a6945fc35.png)
+

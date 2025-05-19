@@ -30,6 +30,12 @@ const nextConfig = {
         hostname: '116.198.244.73',
         port: '9000',
       },
+      {
+        protocol: 'https',
+        hostname: 'lsky.lostyouth.cc',
+        port: '',
+        pathname: '/i/**'
+      }
     ],
   },
   async redirects() {
