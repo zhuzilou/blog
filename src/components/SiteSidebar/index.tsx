@@ -18,13 +18,13 @@ function SiteHeroSection() {
         </div>
         <div className="mt-4 flex justify-center">
           <Link
-            href={`tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=1840863933&website=www.oicqzone.com`}
+            href={`tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=16294725&website=www.oicqzone.com`}
             target="_blank"
           >
             <Icon name="qq" className="ml-3 w-6 h-6"></Icon>
           </Link>
 
-          <Link href={`https://github.com/zhangwh754`} target="_blank">
+          <Link href={`https://github.com/zhuzilou`} target="_blank">
             <Icon name="github" className="ml-3 w-6 h-6"></Icon>
           </Link>
         </div>

@@ -5,8 +5,8 @@ const dataConfig = {
   themeDark: 'night', // daisyui黑暗模式名称
   defaultTheme: 'night', // 默认模式
 
-  author: 'djdg626',
-  introduction: '练习时长两年半的前端练习生',
+  author: 'DSL',
+  introduction: '都是草台班子',
 }
 
 export default dataConfig
