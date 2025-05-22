@@ -43,6 +43,13 @@ COPY --from=builder  /app/.env /app
 COPY --from=builder  /app/public /app/public
 COPY --from=builder  /app/.next/static /app/.next/static
 
+# alpine linux镜像特殊添加
+RUN apk update && apk add tzdata
+# 添加时区环境变量，亚洲，上海
+ENV TimeZone=Asia/Shanghai
+# 使用软连接，并且将时区配置覆盖/etc/timezone
+RUN ln -snf /usr/share/zoneinfo/$TimeZone /etc/localtime && echo $TimeZone > /etc/timezone
+
 EXPOSE 3002
 ENV PORT 3002
 
