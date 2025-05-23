@@ -1,0 +1,141 @@
+---
+title: Nginx代理后html缓存问题
+date: 2025-05-22
+tag: nginx,docker
+description: 不了解缓存机制，使用工具箱生成的配置文件，默认使用了缓存，导致无法显示更新内容
+---
+
+# 问题描述
+dev环境更新内容后，发布到生产后，无法显示已更新内容，最终是通过禁用了ng的缓存修复该问题。
+# 问题总结
+回顾deepseek的回复，在一开始时已提醒ng缓存问题，并未关注该修复点。通过自己的怀疑不断提问，导致问题走向偏离原轨道。
+```nginx
+location ^~ / {
+    # 其他配置
+    proxy_cache off;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+}
+```
+
+# 修复过程
+## 怀疑是未执行pnpm install，导致未更新数据。
+deepseek给出的结果中已然指出了想法错误，但因为未仔细阅读导致越走越远。阅读要仔细！！！阅读要仔细！！！阅读要仔细！！！
+```
+在执行 pnpm run build 之前，必须确保已执行 pnpm install。以下是详细原因和流程说明：
+
+1. 依赖安装的必要性
+pnpm install 的作用：
+根据项目中的 package.json 和 pnpm-lock.yaml（或 pnpm-lock.yml）安装所有依赖项到 node_modules 目录。
+
+若跳过此步骤，构建过程会因缺少依赖而直接报错（例如 Module not found）。
+
+pnpm run build 的依赖：
+Next.js 的构建脚本（如 next build）需要依赖 webpack、babel、react 等工具和库。这些依赖必须通过 pnpm install 安装后才能使用。
+
+2. 典型场景分析
+首次克隆仓库：
+如果项目是刚克隆到本地或新环境，必须执行 pnpm install 安装依赖，否则 build 无法运行。
+
+依赖更新后：
+若 package.json 或锁文件（pnpm-lock.yaml）有变动（如新增依赖或版本升级），需重新执行 pnpm install 同步最新依赖。
+
+Docker 构建环境：
+# 这里已明确指出已执行pnpm i
+根据提供的 Dockerfile，依赖安装已在 deps 阶段完成：
+dockerfile
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+RUN pnpm i  # 安装依赖
+因此，在 Docker 构建时无需手动执行 pnpm install，但本地开发时仍需手动执行。
+...
+```
+
+## 最终自以为可以修复问题的Dockerfile
+通过deepseek建议修改Dockerfile文件，将pnpm install加入，并分离各个构建阶段。其中添加同步时区的代码，是由于怀疑过时间不同步也可能引发问题，一并同步修复。
+```dockerfile
+# ----------------------
+# 基础镜像（所有阶段共享）
+# ----------------------
+FROM node:18-alpine AS base
+
+# 全局安装 pnpm（所有阶段共用，固定版本避免版本漂移）
+RUN npm install -g pnpm@10.6.2
+
+# 可选，自定义参数变量，在docker build时通过--build-arg ENV=参数
+# ARG ENV
+
+# ----------------------
+# 第一阶段：依赖安装
+# ----------------------
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+  && apk update \
+  && apk add --no-cache libc6-compat
+
+# 仅复制依赖清单文件，利用 Docker 层缓存
+COPY package.json pnpm-lock.yaml* ./
+
+RUN npm config set registry https://registry.npmmirror.com \
+  && npm_config_platform=linux npm_config_arch=x64 npm_config_libc=glibc pnpm i
+
+# 安装生产依赖（--prod 可减少非必要依赖）
+RUN pnpm install --frozen-lockfile
+
+# ----------------------
+# 第二阶段：构建应用
+# ----------------------
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+
+# 复用依赖阶段的 node_modules
+COPY --from=deps /app/node_modules ./node_modules
+
+# 复制源代码（排除非必要文件）
+COPY . .
+
+# 清理旧构建缓存（可选）
+RUN rm -rf .next
+
+# 执行构建命令，构建完成后删除 node_modules
+RUN pnpm run build 
+
+# ----------------------
+# 第三阶段：生产镜像
+# ----------------------
+FROM base AS runner
+WORKDIR /app
+
+RUN apk add tzdata
+# 添加时区环境变量，亚洲，上海
+ENV TimeZone=Asia/Shanghai
+# 使用软连接，并且将时区配置覆盖/etc/timezone
+RUN ln -snf /usr/share/zoneinfo/$TimeZone /etc/localtime && echo $TimeZone > /etc/timezone
+
+# 安全相关配置
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN addgroup -g 1001 -S nodejs \
+  && adduser -S nextjs -u 1001
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/. ./
+COPY --from=builder --chown=nextjs:nodejs /app/public /app/public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static /app/.next/static
+# 此行似乎无用，未验证
+COPY --from=builder  /app/.env /app
+
+# 设置非 root 用户运行（增强安全性）
+USER nextjs
+
+# 配置端口
+EXPOSE 3002
+ENV PORT 3002
+ENV HOSTNAME 0.0.0.0
+
+# 启动命令
+CMD ["node", "server.js"]
+
+```
