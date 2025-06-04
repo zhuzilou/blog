@@ -1,4 +1,5 @@
-FROM node:18-alpine AS base
+# 适配m1系统，指定镜像架构
+FROM --platform=amd64 node:18-alpine AS base
 
 # 可选，自定义参数变量，在docker build时通过--build-arg ENV=参数
 # ARG ENV
