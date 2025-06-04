@@ -16,8 +16,10 @@ location ^~ / {
     add_header Cache-Control "no-cache, no-store, must-revalidate";
 }
 ```
+# 意外收获
+在构建过程中，可以使用多阶段构建。第一阶段是deps，安装依赖；第二阶段builder，执行构建；第三阶段runner，运行应用。
 
-# 修复过程
+# 错误的修复过程
 ## 怀疑是未执行pnpm install，导致未更新数据。
 deepseek给出的结果中已然指出了想法错误，但因为未仔细阅读导致越走越远。阅读要仔细！！！阅读要仔细！！！阅读要仔细！！！
 ```
@@ -40,7 +42,8 @@ Next.js 的构建脚本（如 next build）需要依赖 webpack、babel、react 
 若 package.json 或锁文件（pnpm-lock.yaml）有变动（如新增依赖或版本升级），需重新执行 pnpm install 同步最新依赖。
 
 Docker 构建环境：
-# 这里已明确指出已执行pnpm i
+# !!!这里Deepseek已明确指出当前dockerfile已执行pnpm i!!!
+
 根据提供的 Dockerfile，依赖安装已在 deps 阶段完成：
 dockerfile
 COPY package.json ./
