@@ -10,8 +10,8 @@
 计划采用在dev环境打包镜像，上传到服务器生成容器。
 1. dev环境执行
 ```shell
-docker build -t blog:v20250604001 .
-docker save blog:v20250604001 -o blog-prod-20250604001.tar
+docker build -t blog:v20250623001 .
+docker save blog:v20250623003 -o blog-prod-v20250623003.tar
 ```
 2. prod环境执行
 ```shell
